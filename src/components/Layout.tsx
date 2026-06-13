@@ -48,7 +48,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             return (
               <Link
                 key={item.path}
-                to={item.path} // 👈 React Routerでは href ではなく to を使います
+                to={item.path}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -73,7 +73,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       </aside>
 
       {/* 📄 右側：メインコンテンツ（ページごとに中身が切り替わるエリア） */}
-      <main style={{ flex: 1, padding: '40px', backgroundColor: '#fff' }}>
+      <main style={{ flex: 1, backgroundColor: '#fff' }}>
         {children}
       </main>
 

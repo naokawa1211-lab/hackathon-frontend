@@ -7,7 +7,10 @@ import { HomePage } from './pages/home'; // もしファイル名が大文字な
 import { AuthPage } from './pages/auth';
 import { DMPage } from './pages/DM';
 import { SellPage } from './pages/sell';
+import { SearchPage } from './pages/search';
+import { MyPage } from './pages/mypage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+
 
 const App = () => {
   // 🌌 ユーザーの状態と、Firebaseのチェック中フラグを管理
@@ -54,6 +57,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/search" element={<SearchPage />} />
               <Route 
                 path="/dm"
                 element={
@@ -67,6 +71,14 @@ const App = () => {
                 element={
                   <ProtectedRoute user={user}>
                     <SellPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route 
+                path="/mypage"
+                element={
+                  <ProtectedRoute user={user}>
+                    <MyPage />
                   </ProtectedRoute>
                 }
               />
