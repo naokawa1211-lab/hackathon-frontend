@@ -1,36 +1,27 @@
 import React, { useState } from 'react';
+import AppLayout from '../components/layout/AppLayout';
+import { SellSidebar } from '../components/sidebar/SellSidebar';
 
-// 🌌 ステップの定義
-const STEPS = [
-  { id: 1, name: '基本情報' },
-  { id: 2, name: '詳細情報' },
-  { id: 3, name: '価格設定' },
-  { id: 4, name: '確認・出品' },
-];
-
-// 🛸 宇宙のランダム画像プール（クリックするたびにここからランダムでセットされる）
 const SPACE_IMAGES = [
-  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600", // 地球・サイバー
-  "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=600", // 星雲・パープル
-  "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=600", // 衛星・宇宙飛行
-  "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=600", // ブルー惑星
-  "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600"  // 銀河・星雲
+  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600",
+  "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=600",
+  "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=600",
+  "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=600",
+  "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600"
 ];
 
 export const SellPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // フォームの状態管理（Goのバックエンドのキー名に統一）
   const [formData, setFormData] = useState({
     title: '',
-    category: '惑星・星', // Go側のテストデータに統一
+    category: '惑星・星',
     description: '',
     price: '',
-    image_url_1: '', // ここにダミー画像のURLを入れる
+    image_url_1: '',
   });
 
-  // 🛠️ 宇宙ハック：画像アップロードボタンを押したらランダムに星の画像がセットされる
   const handleSimulateUpload = () => {
     const randomIndex = Math.floor(Math.random() * SPACE_IMAGES.length);
     const selectedImage = SPACE_IMAGES[randomIndex];
@@ -44,19 +35,17 @@ export const SellPage = () => {
     if (currentStep > 1) setCurrentStep((prev) => prev - 1);
   };
 
-  // 🚀 Goのバックエンドへ実際に出品データを送信
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // バックエンドが期待するデータ構造に整形
     const payload = {
       title: formData.title,
       description: formData.description,
-      price: parseInt(formData.price, 10) || 0, // 文字列から数値（int）に変換
+      price: parseInt(formData.price, 10) || 0,
       category: formData.category,
       image_url_1: formData.image_url_1,
-      seller_id: 'mock_uid_naoya', // 先ほど成功したNaoyaのモックIDをセット！
+      seller_id: 'mock_uid_naoya',
     };
 
     try {
@@ -73,11 +62,8 @@ export const SellPage = () => {
       }
 
       const data = await response.json();
-      console.log('Backend Response:', data);
-      
       alert(`🛰️ 宇宙中心バンクに登録されました！\n商品ID: ${data.id} 「${data.title}」`);
       
-      // フォームをリセットしてステップ1に戻る
       setFormData({ title: '', category: '惑星・星', description: '', price: '', image_url_1: '' });
       setCurrentStep(1);
 
@@ -90,43 +76,14 @@ export const SellPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#060913] text-slate-100 font-mono p-6 flex flex-col justify-between">
-      
-      {/* 🛸 メインコンテンツエリア */}
-      <div className="max-w-6xl w-full mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 my-auto">
-        
-        {/* 📋 左側：出品の流れ */}
-        <div className="md:col-span-1 space-y-4 border-r border-cyan-500/10 pr-6">
-          <h2 className="text-sm font-bold text-cyan-400 tracking-widest mb-6 uppercase">📦 出品の流れ</h2>
-          <div className="space-y-6">
-            {STEPS.map((step) => (
-              <div key={step.id} className="flex items-center gap-3">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border transition-all ${
-                  currentStep === step.id
-                    ? 'bg-cyan-500/20 border-cyan-400 text-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.4)]'
-                    : currentStep > step.id
-                    ? 'bg-slate-800 border-slate-700 text-slate-400 line-through'
-                    : 'bg-slate-950 border-slate-800 text-slate-600'
-                }`}>
-                  {step.id}
-                </div>
-                <span className={`text-xs tracking-wider transition-colors ${
-                  currentStep === step.id ? 'text-cyan-300 font-bold' : 'text-slate-500'
-                }`}>
-                  {step.name}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-12 p-4 bg-slate-950/40 border border-slate-800 rounded text-[11px] text-slate-400 leading-relaxed">
-            <span className="text-cyan-400 font-bold block mb-1">💡 ヒント</span>
-            魅力的な商品画像や詳細なパラメータを記述すると、銀河系全域のバイヤーから注目されやすくなります。
-          </div>
-        </div>
-
-        {/* 🖋️ 右側：動的フォームエリア */}
-        <div className="md:col-span-3 bg-slate-950/40 border border-slate-800/80 rounded-xl p-8 shadow-2xl backdrop-blur-sm min-h-[450px] flex flex-col justify-between">
+    <AppLayout
+      // 🚀 スロットに出品用のサイドバーを流し込み、現在のステップを同期
+      sidebar={<SellSidebar currentStep={currentStep} />}
+    >
+      {/* 🖋️ メインの動的フォームエリア */}
+      <div className="h-full overflow-y-auto p-8 flex items-center justify-center font-mono text-slate-100">
+        <div className="max-w-3xl w-full bg-slate-950/40 border border-slate-800/80 rounded-xl p-8 shadow-2xl backdrop-blur-sm min-h-[500px] flex flex-col justify-between">
+          
           <form onSubmit={handleSubmit} className="space-y-6 flex-grow">
             
             {/* 1️⃣ STEP 1: 基本情報 */}
@@ -137,13 +94,12 @@ export const SellPage = () => {
                   <label className="text-xs text-slate-400 block mb-2 font-bold uppercase tracking-wider">天体スキャン画像 (最大1枚)</label>
                   
                   <div className="grid grid-cols-5 gap-3">
-                    {/* 画像アップロード・シミュレーター */}
                     <div 
                       onClick={handleSimulateUpload}
                       className="aspect-square border border-dashed border-slate-800 hover:border-cyan-500/50 bg-slate-900/50 rounded flex flex-col items-center justify-center cursor-pointer group transition-all text-slate-500 hover:text-cyan-400 relative overflow-hidden"
                     >
                       {formData.image_url_1 ? (
-                        <img src={formData.image_url_1} alt="Preview" className="w-full h-full object-cover animate-fadeIn" />
+                        <img src={formData.image_url_1} alt="Preview" className="w-full h-full object-cover" />
                       ) : (
                         <>
                           <span className="text-xl group-hover:scale-110 transition-transform">+</span>
@@ -178,7 +134,7 @@ export const SellPage = () => {
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full bg-[#0c101f] border border-slate-800 rounded px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-cyan-500/50 transition-colors"
                   >
-                    <option value="惑星·星">惑星・星</option>
+                    <option value="惑星・星">惑星・星</option>
                     <option value="惑星・衛星">惑星・衛星</option>
                     <option value="ブラックホール">ブラックホール</option>
                     <option value="銀河・星雲">銀河・星雲</option>
@@ -248,7 +204,7 @@ export const SellPage = () => {
           </form>
 
           {/* 🔘 ナビゲーションボタン */}
-          <div className="flex justify-between items-center border-t border-slate-900 pt-4 mt-6">
+          <div className="flex justify-between items-center border-t border-slate-900 pt-4 mt-6 flex-shrink-0">
             <button
               type="button"
               onClick={handleBack}
@@ -284,6 +240,6 @@ export const SellPage = () => {
 
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 };
