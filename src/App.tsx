@@ -1,38 +1,18 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { fireAuth } from './firebase';
-import { useState, useEffect } from 'react';
-import { onAuthStateChanged, User, signOut} from 'firebase/auth';
-import { Layout } from './components/Layout';
-import { HomePage } from './pages/home'; // もしファイル名が大文字なら 'HomePage' に適宜修正してください
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HomePage } from './pages/home'; 
 import { AuthPage } from './pages/auth';
 import { DMPage } from './pages/DM';
 import { SellPage } from './pages/sell';
 import { SearchPage } from './pages/search';
 import { MyPage } from './pages/mypage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AuthProvider, useAuth } from './context/AuthContext'; // 💡 useAuthもインポート
+import { injectUniverseData } from "./utils/seedData";
 
-
-const App = () => {
-  // 🌌 ユーザーの状態と、Firebaseのチェック中フラグを管理
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(fireAuth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false); // チェックが終わったらローディングを解除
-    });
-    return () => unsubscribe(); // メモリリーク防止のお片付け
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(fireAuth);
-      alert('宇宙ネットワークから切断しました（ログアウト完了）');
-    } catch (err) {
-      console.error('ログアウトエラー:', err);
-    }
-  };
+// 🛰️ [A] メインのコンテンツ（ルーティングとローディング監視）
+const AppContent = () => {
+  // 💡 Contextから、Firebaseの接続状態（user, loading）を直接召喚！
+  const { user, loading } = useAuth(); 
 
   // 📡 通信チェック中は、世界観に合わせたローディング画面を表示
   if (loading) {
@@ -45,47 +25,35 @@ const App = () => {
   }
   return (
     <Router>
-      {/* 💡 ハッカソン用のデモ便利バー 
-        画面の一番下に、各ページに一瞬でワープできる秘密のボタンを置いておきます。
-        デモの時に審査員に見せるのにもめちゃくちゃ便利です！
-      */}
-        <div className="min-h-screen bg-[#060913] flex flex-col justify-between">
-          
-          {/* 🌌 メインコンテンツ（URLに応じてここがパッと切り替わる） */}
-          <div className="flex-grow">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route 
-                path="/dm"
-                element={
-                  <ProtectedRoute user={user}>
-                    <DMPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route 
-                path="/sell"
-                element={
-                  <ProtectedRoute user={user}>
-                    <SellPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route 
-                path="/mypage"
-                element={
-                  <ProtectedRoute user={user}>
-                    <MyPage />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </div>
+      <div className="min-h-screen bg-[#060913] flex flex-col justify-between">
+        
+        {/* 🌌 メインコンテンツ */}
+        <div className="flex-grow">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            
+            {/* 💡 user={user} の Propsバケツリレーが不要になり、めちゃくちゃスッキリします！ */}
+            <Route path="/dm" element={<ProtectedRoute><DMPage /></ProtectedRoute>} />
+            <Route path="/sell" element={<ProtectedRoute><SellPage /></ProtectedRoute>} />
+            <Route path="/mypage" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
+          </Routes>
         </div>
+
+      </div>
     </Router>
   );
-}
+};
+
+// 🌌 [B] アプリケーションの最外殻（すべての親）
+const App = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+};
+
 
 export default App;

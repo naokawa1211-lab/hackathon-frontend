@@ -3,7 +3,7 @@ import { Search, Rocket, ShieldAlert, Orbit, Layers } from 'lucide-react';
 
 export const HomeSidebar = () => {
   return (
-    <aside className="w-64 border-r border-slate-800/60 bg-[#060913]/80 p-6 flex flex-col gap-6 h-full font-mono">
+    <aside className="w-80 border-r border-slate-800/60 bg-[#060913]/80 p-6 flex flex-col gap-6 h-full font-mono">
       {/* 🔍 キーワード検索 */}
       <div className="space-y-2">
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">物資・シグナル検索</label>

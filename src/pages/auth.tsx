@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  GithubAuthProvider,
-  signInWithPopup
-} from 'firebase/auth';
-import { fireAuth } from '../firebase'; // 💡 環境に合わせてパスを調整してください
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { fireAuth } from '../firebase';
+import { useAuth } from '../context/AuthContext'; // 💡 ContextからHookをインポート
 
 export const AuthPage = () => {
   const navigate = useNavigate();
+  const { loginWithGoogle, loginWithGithub } = useAuth(); // 💡 宇宙規模のロジックを召喚！
+  
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,54 +23,43 @@ export const AuthPage = () => {
     try {
       if (isSignUp) {
         await createUserWithEmailAndPassword(fireAuth, email, password);
-        alert('宇宙市民登録が完了しました！');
+        alert('登録が完了しました！');
       } else {
         await signInWithEmailAndPassword(fireAuth, email, password);
       }
       navigate('/');
-    } catch (err: any) {
-      console.error(err);
+  } catch (err: any) {
+      console.error("Firebase Auth Error:", err); // 💡 ブラウザのコンソール(F12)でも確認できるように
+      
       if (err.code === 'auth/weak-password') {
-        setError('アクセスキー（パスワード）は6文字以上に設定してください。');
+        setError ('パスワードは6文字以上に設定してください。');
       } else if (err.code === 'auth/email-already-in-use') {
-        setError('このシグナル（メールアドレス）は既に登録されています。');
-      } else if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
-        setError('認証シグナルが一致しません。');
+        setError('このメールアドレスは既に登録されています。');
+      } else if (
+        err.code === 'auth/wrong-password' || 
+        err.code === 'auth/user-not-found' ||
+        err.code === 'auth/invalid-credential' // 💡 ここにこれを追加！
+      ) {
+        setError('メールアドレスまたはパスワードが違います');
       } else {
-        setError('通信エラーが発生しました。');
+        // 本当に通信が途切れた時だけここに来る
+        setError(`通信エラーが発生しました。(${err.code})`); 
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // 🌐 2. Google ソーシャルログイン
-  const handleGoogleSignIn = async () => {
+  // 🌐🐙 2. ソーシャルログイン用共通ハンドラー
+  const handleSocialSignIn = async (signInMethod: () => Promise<void>, providerName: string) => {
     setError('');
     setLoading(true);
-    const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(fireAuth, provider);
+      await signInMethod();
       navigate('/');
     } catch (err: any) {
       console.error(err);
-      setError('Google回線との接続に失敗しました。');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 🐙 3. GitHub ソーシャルログイン
-  const handleGithubSignIn = async () => {
-    setError('');
-    setLoading(true);
-    const provider = new GithubAuthProvider();
-    try {
-      await signInWithPopup(fireAuth, provider);
-      navigate('/');
-    } catch (err: any) {
-      console.error(err);
-      setError('GitHub回線との接続に失敗しました。キーの設定を確認してください。');
+      setError(`${providerName}回線との接続に失敗しました。`);
     } finally {
       setLoading(false);
     }
@@ -156,7 +142,7 @@ export const AuthPage = () => {
           </button>
         </div>
 
-        {/* 🌌 ---------------- 区切り線 ---------------- 🌌 */}
+        {/* 🌌 区切り線 🌌 */}
         <div className="relative my-6 flex items-center justify-center">
           <div className="border-t border-slate-800 w-full"></div>
           <span className="absolute bg-[#0b1224] px-3 text-[9px] font-mono text-slate-500 tracking-widest uppercase">
@@ -170,7 +156,7 @@ export const AuthPage = () => {
           <button
             type="button"
             disabled={loading}
-            onClick={handleGoogleSignIn}
+            onClick={() => handleSocialSignIn(loginWithGoogle, 'Google')}
             className="flex items-center justify-center gap-2 bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-slate-300 font-mono text-xs py-2 px-3 rounded transition-all hover:bg-slate-850 active:scale-[0.98]"
           >
             <span className="text-sm">🌐</span> Google
@@ -180,7 +166,7 @@ export const AuthPage = () => {
           <button
             type="button"
             disabled={loading}
-            onClick={handleGithubSignIn}
+            onClick={() => handleSocialSignIn(loginWithGithub, 'GitHub')}
             className="flex items-center justify-center gap-2 bg-slate-900 border border-slate-800 hover:border-purple-500/40 text-slate-300 font-mono text-xs py-2 px-3 rounded transition-all hover:bg-slate-850 active:scale-[0.98]"
           >
             <span className="text-sm">🐙</span> GitHub

@@ -27,7 +27,7 @@ const SidebarItem = ({ icon, label, active = false }: SidebarItemProps) => (
 
 export const MyPageSidebar = () => {
   return (
-    <aside className="w-64 border-r border-slate-800/60 bg-[#060913]/80 p-6 flex flex-col gap-8 h-full">
+    <aside className="w-80 border-r border-slate-800/60 bg-[#060913]/80 p-6 flex flex-col gap-8 h-full">
       <div className="space-y-6">
         <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">マイページ</h2>
         <nav className="space-y-1">

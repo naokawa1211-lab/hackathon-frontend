@@ -32,7 +32,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({
 }) => {
   return (
     <aside className="
-      h-full w-72
+      h-full w-80
       flex flex-col gap-8 p-6
       bg-slate-950/40 backdrop-blur-md
       border-r border-cyan-500/20
