@@ -6,7 +6,6 @@ const navItems = [
   { label: "HOME", path: "/" },
   { label: "SEARCH", path: "/search" },
   { label: "SELL", path: "/sell" },
-  { label: "LIKE", path: "/like" },
   { label: "DM", path: "/dm" },
 ];
 
@@ -14,14 +13,6 @@ export default function HeaderNavigation() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-
-  // ⚙️ デモデータ注入ロジックをヘッダー内に統合
-  const handleSeedClick = async () => {
-    if (!user) return;
-    if (window.confirm("Firestoreにデモ用データを一括生成しますか？")) {
-      await injectUniverseData(user.uid);
-    }
-  };
 
   const handleLogoutClick = async () => {
     if (window.confirm("宇宙ネットワークから切断（ログアウト）しますか？")) {
@@ -94,31 +85,6 @@ export default function HeaderNavigation() {
           {user ? (
             <div className="flex items-center gap-4 border-l border-slate-800 pl-4">
               
-              {/* 💡 【ここに統合】デモ用SEEDボタン。デザインをヘッダー用に最適化 */}
-              <button
-                onClick={handleSeedClick}
-                className="
-                  bg-purple-950/40
-                  hover:bg-purple-900/60
-                  text-purple-300
-                  font-mono
-                  text-[10px]
-                  tracking-widest
-                  border
-                  border-purple-500/40
-                  hover:border-purple-400
-                  px-2.5
-                  py-1
-                  rounded
-                  transition-all
-                  shadow-sm
-                  shadow-purple-500/10
-                  mr-1
-                "
-              >
-                🧬 SEED DATA
-              </button>
-
               {/* アバター */}
               <Link to="/mypage" className="relative group flex items-center">
                 {user.photoURL ? (

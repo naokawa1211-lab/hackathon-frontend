@@ -1,26 +1,30 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // 💡 追加: 購入成功時にDMページへ飛ばすため
 import AppLayout from '../components/layout/AppLayout';
 import { SearchSidebar } from '../components/sidebar/SearchSidebar';
+import { ProductDetailModal } from '../components/Modal/ProductDetailModal'; // 💡 追加: 詳細モダル
 
 const MOCK_PRODUCTS = [
-  { id: 'm1', title: 'シリウス', description: 'おおいぬ座の最も明るい恒星', price: 120000000, category: '恒星・星', image_url_1: 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=600', seller_name: 'StarTrader_7', rating: 4.9, status: 'available' },
-  { id: 'm2', title: 'ベテルギウス', description: 'オリオン座の赤色超巨星', price: 95000000, category: '恒星・星', image_url_1: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600', seller_name: 'RedGiant_Lover', rating: 4.8, status: 'available' },
-  { id: 'm3', title: 'ケプラー-22b', description: 'ハビタブルゾーンの系外惑星', price: 530000000, category: '惑星・衛星', image_url_1: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=600', seller_name: 'ExoPlanet_Hunter', rating: 5.0, status: 'available' },
-  { id: 'm4', title: 'オリオン大星雲', description: 'M42・美しい散光星雲', price: 28000000, category: '銀河・星雲', image_url_1: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600', seller_name: 'Nebula_Traveler', rating: 4.7, status: 'available' },
-  { id: 'm5', title: '土星', description: '美しい環を持つガス惑星', price: 75000000, category: '惑星・衛星', image_url_1: 'https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?q=80&w=600', seller_name: 'Ring_Collector', rating: 4.6, status: 'available' },
-  { id: 'm6', title: 'いて座A*', description: '銀河中心の超巨大質量ブラックホール', price: 999000000, category: 'ブラックホール', image_url_1: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=600', seller_name: 'DarkMatter_Inc', rating: 5.0, status: 'available' },
+  { id: 'm1', title: 'シリウス', description: 'おおいぬ座の最も明るい恒星', price: 120000000, category: '恒星・星', image_url_1: 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=600', seller_name: 'StarTrader_7', seller_id: 'mock_seller_1', rating: 4.9, status: 'available' },
+  { id: 'm2', title: 'ベテルギウス', description: 'オリオン座の赤色超巨星', price: 95000000, category: '恒星・星', image_url_1: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600', seller_name: 'RedGiant_Lover', seller_id: 'mock_seller_2', rating: 4.8, status: 'available' },
+  { id: 'm3', title: 'ケプラー-22b', description: 'ハビタブルゾーンの系外惑星', price: 530000000, category: '惑星・衛星', image_url_1: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=600', seller_name: 'ExoPlanet_Hunter', seller_id: 'mock_seller_3', rating: 5.0, status: 'available' },
+  { id: 'm4', title: 'オリオン大星雲', description: 'M42・美しい散光星雲', price: 28000000, category: '銀河・星雲', image_url_1: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600', seller_name: 'Nebula_Traveler', seller_id: 'mock_seller_4', rating: 4.7, status: 'available' },
+  { id: 'm5', title: '土星', description: '美しい環を持つガス惑星', price: 75000000, category: '惑星・衛星', image_url_1: 'https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?q=80&w=600', seller_name: 'Ring_Collector', seller_id: 'mock_seller_5', rating: 4.6, status: 'available' },
+  { id: 'm6', title: 'いて座A*', description: '銀河中心の超巨大質量ブラックホール', price: 999000000, category: 'ブラックホール', image_url_1: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=600', seller_name: 'DarkMatter_Inc', seller_id: 'mock_seller_6', rating: 5.0, status: 'available' },
 ];
 
 export const SearchPage = () => {
-  const [products, setProducts] = useState(MOCK_PRODUCTS);
+  const navigate = useNavigate(); // 💡 追加
+  const [products, setProducts] = useState<any[]>(MOCK_PRODUCTS);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // 💡 サイドバーと連動させるためのState群
+  // 💡 追加: 現在モダルで詳細を開いている商品を管理するState（nullのときは閉じている状態）
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  
   const [selectedCategory, setSelectedCategory] = useState('すべて');
-  const [priceRange, setPriceRange] = useState(1000000000); // 初期値は最大値（10億μCr）
+  const [priceRange, setPriceRange] = useState(1000000000); 
   const [sortOrder, setSortOrder] = useState('newest');
 
-  // 💡 リセットボタンが押された時の処理
   const handleReset = () => {
     setSelectedCategory('すべて');
     setPriceRange(1000000000);
@@ -41,6 +45,7 @@ export const SearchPage = () => {
             price: p.price,
             category: p.category || '恒星・星',
             image_url_1: p.image_url_1 || 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=600',
+            seller_id: p.seller_id, // 💡 修正: モダル側の自作自演ガードのために保持
             seller_name: p.seller_id === 'mock_uid_naoya' ? 'Naoya' : '未知の生命体',
             rating: 5.0,
             status: p.status,
@@ -55,17 +60,12 @@ export const SearchPage = () => {
     fetchRealProducts();
   }, []);
 
-  // 💡 絞り込みと並び替えのロジック（価格帯も追加！）
   const filteredProducts = products
     .filter((product) => {
       const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             product.description.toLowerCase().includes(searchQuery.toLowerCase());
       
-      // サイドバーの「すべて」は、SearchSidebar側でidを 'all' にしていれば 'all'、
-      // 画面上の表記に合わせて 'すべて' に統一するなら以下のように判定します
       const matchesCategory = selectedCategory === 'すべて' || selectedCategory === 'all' || product.category === selectedCategory;
-      
-      // 価格が指定範囲内かどうかの判定
       const matchesPrice = product.price <= priceRange;
 
       return matchesSearch && matchesCategory && matchesPrice;
@@ -73,12 +73,11 @@ export const SearchPage = () => {
     .sort((a, b) => {
       if (sortOrder === 'price_asc') return a.price - b.price;
       if (sortOrder === 'price_desc') return b.price - a.price;
-      return 0; // 'newest' の場合は現状維持（あるいはID等でソート）
+      return 0; 
     });
 
   return (
     <AppLayout
-      // 🛠️ 正しいPropsの渡し方: sidebar={ <コンポーネント /> } とする
       sidebar={
         <SearchSidebar
           selectedCategory={selectedCategory}
@@ -91,7 +90,6 @@ export const SearchPage = () => {
         />
       }
     >
-      {/* 🌌 ここからメインコンテンツ (children) */}
       <div className="p-6 space-y-6 font-mono w-full max-w-7xl mx-auto">
         
         {/* 🔍 検索バー & 宇宙演出 */}
@@ -125,7 +123,9 @@ export const SearchPage = () => {
           {filteredProducts.map((product) => (
             <div 
               key={product.id} 
-              className={`group bg-[#060917]/80 border rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 ${
+              // 💡 変更: クリック時にStateに商品データを注入 ＆ カーソルをポインタに変更
+              onClick={() => setSelectedProduct(product)}
+              className={`group bg-[#060917]/80 border rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 cursor-pointer ${
                 (product as any).isReal 
                   ? 'border-purple-500/40 hover:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.15)]' 
                   : 'border-slate-900 hover:border-slate-700'
@@ -143,7 +143,12 @@ export const SearchPage = () => {
                 }`}>
                   {(product as any).isReal ? 'REAL TIMELINE' : 'NEW'}
                 </span>
-                <button className="absolute top-3 right-3 w-7 h-7 rounded-full bg-slate-950/60 border border-slate-800/50 flex items-center justify-center text-xs text-slate-400 hover:text-rose-400 hover:bg-slate-950 transition-colors">
+                
+                {/* 💡 お気に入りボタンはカードクリックイベントに連動しないよう e.stopPropagation() を挟むと安全です */}
+                <button 
+                  onClick={(e) => e.stopPropagation()} 
+                  className="absolute top-3 right-3 w-7 h-7 rounded-full bg-slate-950/60 border border-slate-800/50 flex items-center justify-center text-xs text-slate-400 hover:text-rose-400 hover:bg-slate-950 transition-colors"
+                >
                   🤍
                 </button>
               </div>
@@ -189,6 +194,21 @@ export const SearchPage = () => {
         )}
 
       </div>
+
+      {/* ========================================================
+          💡 追加: ステートにデータがある時だけ、最前面にモダルを照射
+         ======================================================== */}
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)} // 閉じる処理
+          onBuySuccess={() => {
+            const boughtId = selectedProduct.id;
+            setSelectedProduct(null); // モダルを閉じる
+            navigate(`/dm/${boughtId}`); // その商品のDMセクターへハイパードライブ！
+          }}
+        />
+      )}
     </AppLayout>
   );
 };
