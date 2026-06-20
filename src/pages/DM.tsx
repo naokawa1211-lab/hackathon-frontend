@@ -39,17 +39,39 @@ export const DMPage: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const fetchUsernameFromAPI = async (id: string): Promise<string> => {
+    if (id === 'mock_uid_naoya') return 'Naoya';
+    try {
+      const res = await fetch(`http://localhost:8080/api/users/${id}`);
+      if (res.ok) {
+        const userData = await res.json();
+        return userData.username; // MySQLから引いた本当の名前
+      }
+    } catch (err) {
+      console.error(`UID: ${id} の名前解決に失敗しました:`, err);
+    }
+    return `未知の生命体 (${id.slice(0, 5)})`; // 万が一APIが失敗した時の救済用フォールバック
+  };
+
   // 🛰️ 購入直後など、未知の取引相手とのDMルームへ遷移してきた場合はリストへ動的追加
   useEffect(() => {
     if (!sellerId) return;
     setSelectedUserId(sellerId);
-    setChats((prev) => {
-      if (prev.some((c) => c.id === sellerId)) return prev;
-      return [
-        { id: sellerId, username: sellerName ?? `取引相手 (${sellerId.slice(0, 8)})`, status: 'ONLINE', lastMessage: '取引を開始しました' },
-        ...prev,
-      ];
-    });
+
+    const resolveAndAddRoute = async () => {
+      // 遷移元のStateに名前があればそれを使用、なければAPIから名前を解決
+      const finalName = sellerName || (await fetchUsernameFromAPI(sellerId));
+
+      setChats((prev) => {
+        if (prev.some((c) => c.id === sellerId)) return prev;
+        return [
+          { id: sellerId, username: finalName, status: 'ONLINE', lastMessage: '取引を開始しました' },
+          ...prev,
+        ];
+      });
+    };
+
+    resolveAndAddRoute();
   }, [sellerId, sellerName]);
 
   const fetchChatHistory = async (receiverId: string) => {
@@ -113,12 +135,17 @@ export const DMPage: React.FC = () => {
           const partnerIds: string[] = await response.json(); // 例: ["mock_uid_naoya"]
           
           // 取得したUIDを、サイドバーが読めるChatUser型にマッピング
-          const fetchedChats: ChatUser[] = partnerIds.map((id) => ({
-            id: id,
-            username: id === 'mock_uid_naoya' ? 'Naoya' : `取引相手 (${id.slice(0, 8)})`, // 本来はユーザー名もDBから引きたいが、ハッカソンならこれで爆速対応！
-            status: 'ONLINE',
-            lastMessage: '過去の通信記録あり',
-          }));
+          const fetchedChats: ChatUser[] = await Promise.all(
+            partnerIds.map(async (id) => {
+              const resolvedName = await fetchUsernameFromAPI(id);
+              return {
+                id: id,
+                username: resolvedName, // APIから解決された本名
+                status: 'ONLINE',
+                lastMessage: '過去の通信記録あり',
+              };
+            })
+          );
 
           // デフォルトのエイリアンたちとガッチャンコ（重複は排除）
           setChats((prev) => {
