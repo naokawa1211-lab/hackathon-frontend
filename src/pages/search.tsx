@@ -4,17 +4,23 @@ import { Rocket, Search, Heart, User, SatelliteDish } from 'lucide-react';
 import AppLayout from '../components/layout/AppLayout';
 import { SearchSidebar } from '../components/sidebar/SearchSidebar';
 import { ProductDetailModal } from '../components/Modal/ProductDetailModal'; // 💡 追加: 詳細モダル
+import { API_BASE_URL } from '../config/api';
+import { useAuth } from '../context/AuthContext';
 
 export const SearchPage = () => {
   const navigate = useNavigate(); // 💡 追加
+  const { user } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // 💡 追加: 現在モダルで詳細を開いている商品を管理するState（nullのときは閉じている状態）
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
-  
+
+  // ❤️ お気に入り登録済みの商品ID一覧
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
+
   const [selectedCategory, setSelectedCategory] = useState('すべて');
-  const [priceRange, setPriceRange] = useState(1000000000); 
+  const [priceRange, setPriceRange] = useState(1000000000);
   const [sortOrder, setSortOrder] = useState('newest');
 
   const handleReset = () => {
@@ -24,12 +30,34 @@ export const SearchPage = () => {
     setSearchQuery('');
   };
 
+  // 🛰️ UIDごとの本名を一度だけ解決してキャッシュする（/api/users/:id を叩く）
+  const resolveSellerName = async (id: string): Promise<string> => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/users/${id}`);
+      if (res.ok) {
+        const userData = await res.json();
+        return userData.username || `未知の生命体 (${id.slice(0, 5)})`;
+      }
+    } catch (err) {
+      console.error(`UID: ${id} の名前解決に失敗しました:`, err);
+    }
+    return `未知の生命体 (${id.slice(0, 5)})`;
+  };
+
   useEffect(() => {
     const fetchRealProducts = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/products');
+        const response = await fetch(`${API_BASE_URL}/api/products`);
         if (response.ok) {
           const realData = await response.json();
+
+          // 💡 出品者のUIDをユニーク化し、MySQLから本名を解決（ハードコードをやめる）
+          const uniqueSellerIds: string[] = Array.from(new Set(realData.map((p: any) => p.seller_id)));
+          const nameEntries = await Promise.all(
+            uniqueSellerIds.map(async (id) => [id, await resolveSellerName(id)] as const)
+          );
+          const nameMap = Object.fromEntries(nameEntries);
+
           const formattedRealData = realData.map((p: any) => ({
             id: p.id,
             title: p.title,
@@ -38,7 +66,7 @@ export const SearchPage = () => {
             category: p.category || '恒星・星',
             image_url_1: p.image_url_1 || 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=600',
             seller_id: p.seller_id, // 💡 修正: モダル側の自作自演ガードのために保持
-            seller_name: p.seller_id === 'mock_uid_naoya' ? 'Naoya' : '未知の生命体',
+            seller_name: nameMap[p.seller_id],
             rating: 5.0,
             status: p.status,
             isReal: true
@@ -51,6 +79,54 @@ export const SearchPage = () => {
     };
     fetchRealProducts();
   }, []);
+
+  // ❤️ ログイン中ユーザーのお気に入り一覧を取得し、ハートの初期状態に反映
+  useEffect(() => {
+    if (!user) {
+      setFavoriteIds(new Set());
+      return;
+    }
+    fetch(`${API_BASE_URL}/api/favorites?user_id=${user.uid}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((favProducts) => {
+        setFavoriteIds(new Set((favProducts || []).map((p: any) => p.id)));
+      })
+      .catch(() => setFavoriteIds(new Set()));
+  }, [user]);
+
+  // ❤️ お気に入りのトグル（追加/解除）
+  const handleToggleFavorite = async (e: React.MouseEvent, productId: number) => {
+    e.stopPropagation(); // カードのクリック（詳細モーダル表示）に伝播させない
+    if (!user) {
+      alert('お気に入り登録にはログインが必要です。');
+      return;
+    }
+
+    // 🔭 楽観的更新：先にUIを切り替え、失敗したら戻す
+    const wasFavorited = favoriteIds.has(productId);
+    setFavoriteIds((prev) => {
+      const next = new Set(prev);
+      wasFavorited ? next.delete(productId) : next.add(productId);
+      return next;
+    });
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/favorites/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.uid, product_id: productId }),
+      });
+      if (!response.ok) throw new Error('お気に入りの更新に失敗しました');
+    } catch (err) {
+      console.error(err);
+      // 失敗時は元に戻す
+      setFavoriteIds((prev) => {
+        const next = new Set(prev);
+        wasFavorited ? next.add(productId) : next.delete(productId);
+        return next;
+      });
+    }
+  };
 
   const filteredProducts = products
     .filter((product) => {
@@ -149,10 +225,14 @@ export const SearchPage = () => {
                   {/* お気に入りボタン */}
                   {!isSoldOut && (
                     <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute top-3 right-3 w-7 h-7 rounded-full bg-slate-950/60 border border-slate-800/50 flex items-center justify-center text-slate-400 hover:text-rose-400 hover:bg-slate-950 transition-colors z-20"
+                      onClick={(e) => handleToggleFavorite(e, product.id)}
+                      className={`absolute top-3 right-3 w-7 h-7 rounded-full bg-slate-950/60 border flex items-center justify-center transition-colors z-20 ${
+                        favoriteIds.has(product.id)
+                          ? 'border-rose-500/60 text-rose-400'
+                          : 'border-slate-800/50 text-slate-400 hover:text-rose-400 hover:bg-slate-950'
+                      }`}
                     >
-                      <Heart size={13} />
+                      <Heart size={13} fill={favoriteIds.has(product.id) ? 'currentColor' : 'none'} />
                     </button>
                   )}
                 </div>
@@ -177,8 +257,8 @@ export const SearchPage = () => {
 
                   <div className="pt-2 border-t border-slate-900 flex justify-between items-center">
                     <div className="text-sm font-bold text-slate-200">
-                      <span className="text-[10px] text-slate-500 mr-1">円</span>
                       {product.price.toLocaleString()}
+                      <span className="text-[10px] text-slate-500 ml-1">円</span>
                     </div>
                     <div className="text-[10px] text-slate-500 flex items-center gap-1">
                       <div className="w-3 h-3 rounded-full bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">

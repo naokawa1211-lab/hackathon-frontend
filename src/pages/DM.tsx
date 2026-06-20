@@ -4,6 +4,7 @@ import { Lock, Send } from 'lucide-react';
 import AppLayout from '../components/layout/AppLayout';
 import { DMSidebar } from '../components/sidebar/DMSidebar';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config/api';
 
 interface Message {
   id?: number;
@@ -42,7 +43,7 @@ export const DMPage: React.FC = () => {
   const fetchUsernameFromAPI = async (id: string): Promise<string> => {
     if (id === 'mock_uid_naoya') return 'Naoya';
     try {
-      const res = await fetch(`http://localhost:8080/api/users/${id}`);
+      const res = await fetch(`${API_BASE_URL}/api/users/${id}`);
       if (res.ok) {
         const userData = await res.json();
         return userData.username; // MySQLから引いた本当の名前
@@ -77,7 +78,7 @@ export const DMPage: React.FC = () => {
   const fetchChatHistory = async (receiverId: string) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/api/messages/history?sender_id=${CURRENT_USER_ID}&receiver_id=${receiverId}`
+        `${API_BASE_URL}/api/messages/history?sender_id=${CURRENT_USER_ID}&receiver_id=${receiverId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -99,7 +100,7 @@ export const DMPage: React.FC = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/messages', {
+      const response = await fetch(`${API_BASE_URL}/api/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newMessage),
@@ -130,7 +131,7 @@ export const DMPage: React.FC = () => {
       if (!CURRENT_USER_ID || CURRENT_USER_ID === 'guest') return;
 
       try {
-        const response = await fetch(`http://localhost:8080/api/messages/partners?user_id=${CURRENT_USER_ID}`);
+        const response = await fetch(`${API_BASE_URL}/api/messages/partners?user_id=${CURRENT_USER_ID}`);
         if (response.ok) {
           const partnerIds: string[] = await response.json(); // 例: ["mock_uid_naoya"]
           

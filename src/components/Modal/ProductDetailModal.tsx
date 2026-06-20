@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X, Zap } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { PRIMARY_BUTTON_CLASS } from "../../styles/buttonStyles";
+import { API_BASE_URL } from "../../config/api";
 
 // Goの model.Product に合わせた型定義
 interface Product {
@@ -43,7 +44,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     setLoading(true);
     try {
       // GoのバックエンドAPIを叩く
-      const response = await fetch(`http://localhost:8080/api/products/${product.id}/buy`, {
+      const response = await fetch(`${API_BASE_URL}/api/products/${product.id}/buy`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -108,7 +109,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <h2 className="text-2xl font-bold tracking-wide text-white mb-2">{product.title}</h2>
               
               <div className="text-sm text-cyan-400 font-mono mb-4">
-                μCr <span className="text-2xl font-bold text-white">{product.price.toLocaleString()}</span>
+                <span className="text-2xl font-bold text-white">{product.price.toLocaleString()}</span> 円
               </div>
 
               <div className="border-t border-gray-800 my-3" />

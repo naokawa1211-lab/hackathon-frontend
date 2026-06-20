@@ -6,6 +6,7 @@ import { PRIMARY_BUTTON_CLASS } from '../styles/buttonStyles';
 import { useNavigate } from 'react-router-dom';
 import { SuccessModal } from '../components/Modal/SuccessModal';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config/api';
 
 export const SellPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -17,6 +18,7 @@ export const SellPage = () => {
     price: '',
   });
   const [isGeneratingAI, setIsGeneratingAI] = useState(false); //AIが考えているという状態
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false); // 🛰️ 画像のマルチモーダル解析中フラグ
 
   // アップロード対象の画像ファイルとプレビュー用URL
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -25,12 +27,44 @@ export const SellPage = () => {
   const [successState, setSuccessState] = useState({ isOpen: false, message: '' });
   const navigate = useNavigate();
 
+  // 🛰️ 画像をGeminiのマルチモーダルAPIに送り、写っているものをベースにタイトル・説明文を自動生成
+  const analyzeImageWithAI = async (file: File) => {
+    setIsAnalyzingImage(true);
+    try {
+      const body = new FormData();
+      body.append('image', file);
+
+      const response = await fetch(`${API_BASE_URL}/api/products/analyze-image`, {
+        method: 'POST',
+        body,
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || '画像解析に失敗しました');
+      }
+
+      const data = await response.json();
+      setFormData((prev) => ({
+        ...prev,
+        title: data.title || prev.title,
+        description: data.description || prev.description,
+      }));
+    } catch (error) {
+      console.error('画像のAI解析に失敗しました:', error);
+      // 🔭 解析失敗時もユーザーは手入力で続行できるため、出品フローはブロックしない
+    } finally {
+      setIsAnalyzingImage(false);
+    }
+  };
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setImageFile(file);
     setImagePreviewUrl(URL.createObjectURL(file));
+    analyzeImageWithAI(file); // 💡 画像選択と同時にバックグラウンドでAI解析を開始
   };
 
   const handleNext = () => {
@@ -48,7 +82,7 @@ export const SellPage = () => {
     setIsGeneratingAI(true); // ぐるぐるアニメーション
 
     try {
-      const response = await fetch('http://localhost:8080/api/ai/space-description', {
+      const response = await fetch(`${API_BASE_URL}/api/ai/space-description`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ product_name: formData.title, description: formData.description }),
@@ -82,7 +116,7 @@ export const SellPage = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/products', {
+      const response = await fetch(`${API_BASE_URL}/api/products`, {
         method: 'POST',
         body,
       });
@@ -161,13 +195,19 @@ export const SellPage = () => {
                     className="hidden"
                   />
                   <p className="text-[10px] text-slate-500 mt-2">商品画像をアップロードしてください。</p>
+                  {isAnalyzingImage && (
+                    <p className="flex items-center gap-1.5 text-[10px] text-cyan-400 mt-2 animate-pulse">
+                      <Loader2 size={12} className="animate-spin" />
+                      Geminiが画像を解析中...（商品名・説明文を自動生成しています）
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className="text-xs text-slate-400 block mb-2 font-bold">商品名</label>
                   <input
                     type="text"
-                    placeholder="例：宇宙服4023年モデル"
+                    placeholder={isAnalyzingImage ? 'Geminiが解析中...' : '例：宇宙服4023年モデル'}
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full bg-[#0c101f] border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 transition-colors"
@@ -197,6 +237,12 @@ export const SellPage = () => {
             {currentStep === 2 && (
               <div className="space-y-4">
                 <h3 className="text-base font-bold text-slate-200 border-b border-slate-800 pb-2 mb-4">詳細情報</h3>
+                {isAnalyzingImage && (
+                  <p className="flex items-center gap-1.5 text-[10px] text-cyan-400 animate-pulse">
+                    <Loader2 size={12} className="animate-spin" />
+                    Geminiが画像を解析中...（商品名・説明文を自動生成しています）
+                  </p>
+                )}
                 <div>
                   <label className="text-xs text-slate-400 block mb-2 font-bold">商品の詳細説明（用途、使用度、傷の有無など）</label>
                   <textarea

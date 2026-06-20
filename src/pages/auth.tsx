@@ -6,6 +6,7 @@ import { fireAuth } from '../firebase';
 import { useAuth } from '../context/AuthContext'; // 💡 ContextからHookをインポート
 import { PRIMARY_BUTTON_CLASS } from '../styles/buttonStyles';
 import { TERMS_AND_PRIVACY_TEXT } from '../data/termsText';
+import { API_BASE_URL } from '../config/api';
 
 export const AuthPage = () => {
   const navigate = useNavigate();
@@ -55,14 +56,14 @@ export const AuthPage = () => {
           displayName: username
         });
 
-        const response = await fetch('http://localhost:8080/api/users', {
+        const response = await fetch(`${API_BASE_URL}/api/users`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: user.uid,
             username: username,
             avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200', // ダミー初期アバター
-            space_credits: 1000 // 初期宇宙クレジット
+            space_credits: 100000 // 初期宇宙クレジット
           }),
         });
         if (!response.ok) {
@@ -71,7 +72,7 @@ export const AuthPage = () => {
 navigate('/search');
   } else {
     // 💡 ログイン（isSignUp が false）の時の処理がここに入ります
-    // 例: await signInWithEmailAndPassword(fireAuth, email, password);
+    await signInWithEmailAndPassword(fireAuth, email, password);
     navigate('/search');
   }
     } catch (err: any) {

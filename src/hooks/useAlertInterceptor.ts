@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { initAlertInterceptor } from '../utils/alertInterceptor';
 
 export const useAlertInterceptor = () => {
-  const [alertState, setAlertState] = useState({ isOpen: false, message: '' });
+  const [alertState, setAlertState] = useState({ isOpen: false, message: '', type: 'error' });
 
   useEffect(() => {
     // 1. マウント時に最速で window.alert を乗っ取る
@@ -14,6 +14,7 @@ export const useAlertInterceptor = () => {
       setAlertState({
         isOpen: true,
         message: customEvent.detail.message,
+        type: customEvent.detail.type || 'error'
       });
     };
 
@@ -29,6 +30,7 @@ export const useAlertInterceptor = () => {
   return {
     isOpen: alertState.isOpen,
     message: alertState.message,
+    type: alertState.type,
     closeAlert,
   };
 };

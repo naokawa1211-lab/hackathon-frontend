@@ -13,13 +13,17 @@ interface SearchSidebarProps {
 }
 
 // 2. 宇宙仕様のカテゴリデータ
+// 💡 修正: sell.tsx の出品フォームで実際に保存されるカテゴリ文字列と完全一致させる
+// （以前は id が 'stars'/'planets' 等の架空の値で、実データの category と一致せず絞り込みが常に0件になっていた）
 const CATEGORIES = [
-  { id: 'all', label: 'すべて', icon: Rocket },
-  { id: 'stars', label: '恒星・星', icon: Sparkles },
-  { id: 'planets', label: '惑星・衛星', icon: Orbit },
-  { id: 'blackhole', label: 'ブラックホール', icon: CircleDot },
-  { id: 'galaxies', label: '銀河・星雲', icon: Orbit },
-  { id: 'others', label: 'その他', icon: Sparkle },
+  { id: 'すべて', label: 'すべて', icon: Rocket },
+  { id: '宇宙船・パーツ', label: '宇宙船・パーツ', icon: Rocket },
+  { id: '生存物資・酸素', label: '生存物資・酸素', icon: Sparkles },
+  { id: 'ITデバイス', label: 'ITデバイス', icon: CircleDot },
+  { id: '天体ガジェット・インテリア', label: '天体ガジェット・インテリア', icon: Orbit },
+  { id: '宇宙服・ウェア', label: '宇宙服・ウェア', icon: Sparkle },
+  { id: '本・星図', label: '本・星図', icon: Orbit },
+  { id: 'その他', label: 'その他', icon: Sparkle },
 ];
 
 export const SearchSidebar: React.FC<SearchSidebarProps> = ({
@@ -89,21 +93,21 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({
           <input
             type="range"
             min={0}
-            max={1000000000}
-            step={1000000}
+            max={100000}
+            step={1000}
             value={priceRange}
             onChange={(e) => onPriceChange(Number(e.target.value))}
             className="w-full accent-cyan-400 bg-slate-900 h-1.5 rounded-lg appearance-none cursor-pointer border border-cyan-500/10"
           />
           <div className="flex justify-between text-[10px] font-mono text-slate-500">
-            <span>μCr 0</span>
-            <span>1,000,000,000+</span>
+            <span>0 円</span>
+            <span>100,000+ 円</span>
           </div>
           <div className="mt-2 px-3 py-1.5 bg-slate-900/80 border border-cyan-500/10 rounded-md text-right">
-            <span className="text-xs text-slate-500 font-mono mr-1">μCr</span>
             <span className="text-sm font-bold font-mono text-cyan-400">
               {priceRange === 0 ? '0' : priceRange.toLocaleString()}
             </span>
+            <span className="text-xs text-slate-500 font-mono ml-1">円</span>
           </div>
         </div>
       </div>
