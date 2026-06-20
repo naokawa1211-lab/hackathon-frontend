@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-// ※ authContextのパスはプロジェクトに合わせて調整してください
-import { useAuth } from "../../context/AuthContext"; 
+import { X, Zap } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { PRIMARY_BUTTON_CLASS } from "../../styles/buttonStyles";
 
 // Goの model.Product に合わせた型定義
 interface Product {
@@ -25,7 +26,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onClose,
   onBuySuccess,
 }) => {
-  const { user } = useAuth(); // 宇宙市民の認証情報を取得
+  const { user } = useAuth(); 
   const [loading, setLoading] = useState(false);
 
   const handleBuy = async () => {
@@ -46,7 +47,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-User-UID": user.uid, // 👈 ヘッダーで買い手のUIDを送信！
+          "X-User-id": user.uid, // 👈 ヘッダーで買い手のUIDを送信！
         },
       });
 
@@ -75,12 +76,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
       {/* モダル本体の宇宙船ウィンドウ */}
       <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-cyan-500/30 bg-[#0b1120] text-gray-100 shadow-2xl shadow-cyan-500/10">
         
-        {/* 閉じる「✕」ボタン */}
-        <button 
+        {/* 閉じるボタン */}
+        <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-cyan-400 text-xl font-bold transition"
+          className="absolute top-4 right-4 text-gray-400 hover:text-cyan-400 transition"
         >
-          ✕
+          <X size={20} />
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-2">
@@ -136,9 +137,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 <button
                   onClick={handleBuy}
                   disabled={loading}
-                  className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-lg tracking-widest transition shadow-lg shadow-cyan-500/20 active:scale-[0.98] disabled:opacity-50"
+                  className={`w-full py-3 rounded-lg tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] ${PRIMARY_BUTTON_CLASS}`}
                 >
-                  {loading ? "取引同期中..." : "⚡ BUY NOW (購入を確定)"}
+                  {loading ? "取引同期中..." : (
+                    <>
+                      <Zap size={16} />
+                      BUY NOW (購入を確定)
+                    </>
+                  )}
                 </button>
               )}
             </div>

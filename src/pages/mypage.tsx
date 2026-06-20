@@ -1,8 +1,9 @@
 import React from 'react';
-import { Plus, CheckCircle2 } from 'lucide-react';
+import { Plus, CheckCircle2, Calendar } from 'lucide-react';
 // 1. AppLayout と新しく作った Sidebar をインポート
-import  AppLayout  from '../components/layout/AppLayout'; 
+import  AppLayout  from '../components/layout/AppLayout';
 import { MyPageSidebar } from '../components/sidebar/MyPageSidebar';
+import { PRIMARY_BUTTON_CLASS } from '../styles/buttonStyles';
 
 // 🪐 モックデータ
 const STATS = [
@@ -44,7 +45,10 @@ export const MyPage = () => {
                   <h1 className="text-2xl font-bold">NovaCollector</h1>
                   <span className="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20">宇宙S級バイヤー</span>
                 </div>
-                <p className="text-xs text-slate-400">📅 登録日 : 2022年10月から利用中</p>
+                <p className="flex items-center gap-1.5 text-xs text-slate-400">
+                  <Calendar size={12} />
+                  登録日 : 2022年10月から利用中
+                </p>
                 <p className="text-[11px] text-slate-300 max-w-md">銀河系全域の希少な天体やテクノロジーを収集しています。迅速かつ丁寧な取引を心がけています。</p>
                 <button className="text-[10px] font-bold text-slate-400 border border-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors">
                   プロフィールを編集
@@ -84,7 +88,7 @@ export const MyPage = () => {
                 <button className="text-slate-500 hover:text-slate-300 pb-3 transition-colors">レビュー</button>
               </div>
 
-              <button className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-4 py-1.5 rounded-lg transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+              <button className={`flex items-center gap-2 text-[10px] px-4 py-1.5 rounded-lg ${PRIMARY_BUTTON_CLASS}`}>
                 <Plus size={14} />
                 新しく出品する
               </button>

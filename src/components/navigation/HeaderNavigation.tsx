@@ -1,6 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext"; 
+import { User } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import { injectUniverseData } from "../../utils/seedData"; // 💡 シード関数を召喚
+import { PRIMARY_BUTTON_CLASS } from "../../styles/buttonStyles";
 
 const navItems = [
   { label: "HOME", path: "/" },
@@ -27,10 +29,10 @@ export default function HeaderNavigation() {
       sticky
       top-0
       z-50
-      h-16
+      h-20
       border-b
       border-cyan-500/20
-      bg-[#030611]/90
+      bg-[#030611]
       backdrop-blur-md
     "
     >
@@ -45,18 +47,12 @@ export default function HeaderNavigation() {
         px-6
       "
       >
-        {/* ロゴ */}
-        <Link
-          to="/"
-          className="
-          text-cyan-400
-          font-bold
-          tracking-widest
-          hover:opacity-80
-          transition-opacity
-        "
-        >
-          ✦ MILKYWAY MARKET
+        <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+          <img 
+            src="/logo.png" 
+            alt="Milkyway Flea Market" 
+            className="h-16 w-auto object-contain"
+          />
         </Link>
 
         <nav className="flex items-center gap-6">
@@ -94,8 +90,8 @@ export default function HeaderNavigation() {
                     className="w-7 h-7 rounded-full border border-cyan-500/40 object-cover group-hover:border-cyan-400 transition-all"
                   />
                 ) : (
-                  <div className="w-7 h-7 rounded-full border border-cyan-500/40 bg-slate-900 flex items-center justify-center text-[10px] text-cyan-400 group-hover:border-cyan-400 transition-all">
-                    👽
+                  <div className="w-7 h-7 rounded-full border border-cyan-500/40 bg-slate-900 flex items-center justify-center text-cyan-400 group-hover:border-cyan-400 transition-all">
+                    <User size={14} />
                   </div>
                 )}
               </Link>
@@ -111,7 +107,7 @@ export default function HeaderNavigation() {
           ) : (
             <Link
               to="/auth"
-              className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-mono px-3 py-1 rounded text-[11px] tracking-widest transition-all shadow-md shadow-cyan-500/10 ml-2"
+              className={`font-mono px-3 py-1 rounded text-[11px] tracking-widest ml-2 ${PRIMARY_BUTTON_CLASS}`}
             >
               LOGIN
             </Link>

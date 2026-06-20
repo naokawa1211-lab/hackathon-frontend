@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
+import { Lock, Send } from 'lucide-react';
 import AppLayout from '../components/layout/AppLayout';
 import { DMSidebar } from '../components/sidebar/DMSidebar';
+import { useAuth } from '../context/AuthContext';
 
 interface Message {
   id?: number;
@@ -17,17 +20,37 @@ interface ChatUser {
   lastMessage: string;
 }
 
-export const DMPage: React.FC = () => {
-  const CURRENT_USER_ID = 'user_A';
+const DEFAULT_CHATS: ChatUser[] = [
+  { id: 'user_B', username: 'エイリアンB', status: 'ONLINE', lastMessage: 'Hackathon Win!' },
+  { id: 'user_C', username: '謎の生命体C', status: 'OFFLINE', lastMessage: '通信途絶...' },
+];
 
-  const [chats] = useState<ChatUser[]>([
-    { id: 'user_B', username: 'エイリアンB', status: 'ONLINE', lastMessage: 'Hackathon Win!' },
-    { id: 'user_C', username: '謎の生命体C', status: 'OFFLINE', lastMessage: '通信途絶...' },
-  ]);
-  const [selectedUserId, setSelectedUserId] = useState<string>('user_B');
+export const DMPage: React.FC = () => {
+  const { user } = useAuth();
+  const CURRENT_USER_ID = user?.uid ?? 'guest';
+
+  const { sellerId } = useParams<{ sellerId?: string }>();
+  const location = useLocation();
+  const sellerName = (location.state as { sellerName?: string } | null)?.sellerName;
+
+  const [chats, setChats] = useState<ChatUser[]>(DEFAULT_CHATS);
+  const [selectedUserId, setSelectedUserId] = useState<string>(sellerId ?? 'user_B');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // 🛰️ 購入直後など、未知の取引相手とのDMルームへ遷移してきた場合はリストへ動的追加
+  useEffect(() => {
+    if (!sellerId) return;
+    setSelectedUserId(sellerId);
+    setChats((prev) => {
+      if (prev.some((c) => c.id === sellerId)) return prev;
+      return [
+        { id: sellerId, username: sellerName ?? `取引相手 (${sellerId.slice(0, 8)})`, status: 'ONLINE', lastMessage: '取引を開始しました' },
+        ...prev,
+      ];
+    });
+  }, [sellerId, sellerName]);
 
   const fetchChatHistory = async (receiverId: string) => {
     try {
@@ -79,6 +102,38 @@ export const DMPage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  //過去にやり取りしたチャット相手のリストをバックエンドから取得して復元
+  useEffect(() => {
+    const fetchPartners = async () => {
+      if (!CURRENT_USER_ID || CURRENT_USER_ID === 'guest') return;
+
+      try {
+        const response = await fetch(`http://localhost:8080/api/messages/partners?user_id=${CURRENT_USER_ID}`);
+        if (response.ok) {
+          const partnerIds: string[] = await response.json(); // 例: ["mock_uid_naoya"]
+          
+          // 取得したUIDを、サイドバーが読めるChatUser型にマッピング
+          const fetchedChats: ChatUser[] = partnerIds.map((id) => ({
+            id: id,
+            username: id === 'mock_uid_naoya' ? 'Naoya' : `取引相手 (${id.slice(0, 8)})`, // 本来はユーザー名もDBから引きたいが、ハッカソンならこれで爆速対応！
+            status: 'ONLINE',
+            lastMessage: '過去の通信記録あり',
+          }));
+
+          // デフォルトのエイリアンたちとガッチャンコ（重複は排除）
+          setChats((prev) => {
+            const combined = [...fetchedChats, ...DEFAULT_CHATS];
+            // 重複排除ロジック
+            return combined.filter((v, i, a) => a.findIndex((t) => t.id === v.id) === i);
+          });
+        }
+      } catch (err) {
+        console.error('チャット相手の一覧取得に失敗しました:', err);
+      }
+    };
+
+    fetchPartners();
+  }, [CURRENT_USER_ID]);
   const activeUser = chats.find((u) => u.id === selectedUserId);
 
   return (
@@ -103,8 +158,9 @@ export const DMPage: React.FC = () => {
               {activeUser?.username} <span className="text-xs text-slate-500">({activeUser?.id})</span>
             </h1>
           </div>
-          <div className="text-[10px] text-amber-400/80 bg-amber-950/30 border border-amber-500/20 px-2 py-1 rounded animate-pulse">
-            🔒 END-TO-END QUANTUM ENCRYPTED
+          <div className="flex items-center gap-1.5 text-[10px] text-amber-400/80 bg-amber-950/30 border border-amber-500/20 px-2 py-1 rounded animate-pulse">
+            <Lock size={11} />
+            END-TO-END QUANTUM ENCRYPTED
           </div>
         </div>
 
@@ -149,8 +205,9 @@ export const DMPage: React.FC = () => {
           />
           <button
             type="submit"
-            className="px-5 py-2 bg-cyan-950 text-cyan-400 border border-cyan-400/40 rounded text-sm hover:bg-cyan-400 hover:text-slate-950 font-bold tracking-widest transition-all uppercase flex-shrink-0"
+            className="px-5 py-2 bg-cyan-950 text-cyan-400 border border-cyan-400/40 rounded text-sm hover:bg-cyan-400 hover:text-slate-950 font-bold tracking-widest transition-all uppercase flex-shrink-0 flex items-center gap-1.5"
           >
+            <Send size={14} />
             SEND
           </button>
         </form>

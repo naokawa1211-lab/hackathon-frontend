@@ -1,4 +1,5 @@
 import React from 'react';
+import { Package, Lightbulb } from 'lucide-react';
 
 // 🌌 ステップの定義
 const STEPS = [
@@ -18,8 +19,9 @@ export const SellSidebar: React.FC<SellSidebarProps> = ({ currentStep }) => {
       
       {/* 📋 上部：出品の流れ */}
       <div className="space-y-6">
-        <h2 className="text-xs font-bold text-cyan-400 tracking-widest uppercase border-b border-cyan-500/20 pb-4">
-          📦 出品の流れ
+        <h2 className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 tracking-widest uppercase border-b border-cyan-500/20 pb-4">
+          <Package size={14} />
+          出品の流れ
         </h2>
         
         <div className="space-y-6">
@@ -46,7 +48,10 @@ export const SellSidebar: React.FC<SellSidebarProps> = ({ currentStep }) => {
 
       {/* 💡 下部：ヒントボックス */}
       <div className="p-4 bg-slate-950/40 border border-slate-800 rounded text-[11px] text-slate-400 leading-relaxed">
-        <span className="text-cyan-400 font-bold block mb-1">💡 ヒント</span>
+        <span className="flex items-center gap-1.5 text-cyan-400 font-bold mb-1">
+          <Lightbulb size={13} />
+          ヒント
+        </span>
         魅力的な商品画像や詳細なパラメータを記述すると、銀河系全域のバイヤーから注目されやすくなります。
       </div>
 

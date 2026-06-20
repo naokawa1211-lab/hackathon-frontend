@@ -1,31 +1,36 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { Plus, Lock, AlertTriangle, ChevronLeft, ChevronRight, Rocket, Sparkles, Loader2 } from 'lucide-react';
 import AppLayout from '../components/layout/AppLayout';
 import { SellSidebar } from '../components/sidebar/SellSidebar';
-
-const SPACE_IMAGES = [
-  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600",
-  "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=600",
-  "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=600",
-  "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=600",
-  "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=600"
-];
+import { PRIMARY_BUTTON_CLASS } from '../styles/buttonStyles';
+import { useNavigate } from 'react-router-dom';
+import { SuccessModal } from '../components/Modal/SuccessModal';
+import { useAuth } from '../context/AuthContext';
 
 export const SellPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
   const [formData, setFormData] = useState({
     title: '',
-    category: '惑星・星',
+    category: '宇宙船・パーツ',
     description: '',
     price: '',
-    image_url_1: '',
   });
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false); //AIが考えているという状態
 
-  const handleSimulateUpload = () => {
-    const randomIndex = Math.floor(Math.random() * SPACE_IMAGES.length);
-    const selectedImage = SPACE_IMAGES[randomIndex];
-    setFormData({ ...formData, image_url_1: selectedImage });
+  // アップロード対象の画像ファイルとプレビュー用URL
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [successState, setSuccessState] = useState({ isOpen: false, message: '' });
+  const navigate = useNavigate();
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageFile(file);
+    setImagePreviewUrl(URL.createObjectURL(file));
   };
 
   const handleNext = () => {
@@ -35,26 +40,51 @@ export const SellPage = () => {
     if (currentStep > 1) setCurrentStep((prev) => prev - 1);
   };
 
+  const handleGenerateSpaceDescription = async () => {
+    if (!formData.title) {
+      alert("先にタイトルを入力してください"); 
+      return;
+    }
+    setIsGeneratingAI(true); // ぐるぐるアニメーション
+
+    try {
+      const response = await fetch('http://localhost:8080/api/ai/space-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_name: formData.title, description: formData.description }),
+      });
+
+      const data = await response.json();
+      
+      // フォームの description（説明文）を上書き
+      setFormData((prev) => ({ ...prev, description: data.space_description }));
+
+    } catch (error) {
+      console.error(error);
+      alert('Geminiによる商品説明の生成に失敗しました。');
+    } finally {
+      setIsGeneratingAI(false); //ぐるぐるアニメーション終了
+    }
+  };
+  const { user } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const payload = {
-      title: formData.title,
-      description: formData.description,
-      price: parseInt(formData.price, 10) || 0,
-      category: formData.category,
-      image_url_1: formData.image_url_1,
-      seller_id: 'mock_uid_naoya',
-    };
+    const body = new FormData();
+    body.append('title', formData.title);
+    body.append('description', formData.description);
+    body.append('price', String(parseInt(formData.price, 10) || 0));
+    body.append('category', formData.category);
+    body.append('seller_id', user?.uid || 'mock_uid_naoya'); //ここだ！！ここで毎回mock_uid_naoyaになってしまっていた
+    if (imageFile) {
+      body.append('image', imageFile);
+    }
 
     try {
       const response = await fetch('http://localhost:8080/api/products', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        body,
       });
 
       if (!response.ok) {
@@ -62,10 +92,16 @@ export const SellPage = () => {
       }
 
       const data = await response.json();
-      alert(`🛰️ 宇宙中心バンクに登録されました！\n商品ID: ${data.id} 「${data.title}」`);
-      
-      setFormData({ title: '', category: '惑星・星', description: '', price: '', image_url_1: '' });
+
+      setFormData({ title: '', category: '宇宙船・パーツ', description: '', price: '' });
+      setImageFile(null);
+      setImagePreviewUrl('');
       setCurrentStep(1);
+
+      setSuccessState({
+        isOpen: true,
+        message: data.message || `Milkyway Data Bankに登録されました！\n商品ID: ${data.id} 「${data.title}」`
+      });
 
     } catch (error) {
       console.error(error);
@@ -73,6 +109,10 @@ export const SellPage = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+  const handleCloseSuccess = () => {
+    setSuccessState({ ...successState, isOpen: false });
+    navigate('/'); // ホーム画面へ遷移
   };
 
   return (
@@ -91,36 +131,43 @@ export const SellPage = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-base font-bold text-slate-200 border-b border-slate-800 pb-2 mb-4">基本情報</h3>
-                  <label className="text-xs text-slate-400 block mb-2 font-bold uppercase tracking-wider">天体スキャン画像 (最大1枚)</label>
+                  <label className="text-xs text-slate-400 block mb-2 font-bold uppercase tracking-wider">商品画像 (最大1枚)</label>
                   
                   <div className="grid grid-cols-5 gap-3">
-                    <div 
-                      onClick={handleSimulateUpload}
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
                       className="aspect-square border border-dashed border-slate-800 hover:border-cyan-500/50 bg-slate-900/50 rounded flex flex-col items-center justify-center cursor-pointer group transition-all text-slate-500 hover:text-cyan-400 relative overflow-hidden"
                     >
-                      {formData.image_url_1 ? (
-                        <img src={formData.image_url_1} alt="Preview" className="w-full h-full object-cover" />
+                      {imagePreviewUrl ? (
+                        <img src={imagePreviewUrl} alt="Preview" className="w-full h-full object-cover" />
                       ) : (
                         <>
-                          <span className="text-xl group-hover:scale-110 transition-transform">+</span>
+                          <Plus size={20} className="group-hover:scale-110 transition-transform" />
                           <span className="text-[9px] mt-1 text-center scale-90 text-slate-600 group-hover:text-cyan-500">天体をスキャン</span>
                         </>
                       )}
                     </div>
                     {[...Array(4)].map((_, i) => (
-                      <div key={i} className="aspect-square border border-dashed border-slate-900 bg-slate-950/20 rounded flex items-center justify-center text-slate-700 text-xs">
-                        🔒
+                      <div key={i} className="aspect-square border border-dashed border-slate-900 bg-slate-950/20 rounded flex items-center justify-center text-slate-700">
+                        <Lock size={14} />
                       </div>
                     ))}
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-2">※ハッカソン仕様：枠をクリックすると量子スキャナーが起動し、天体画像を自動生成します。</p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-2">商品画像をアップロードしてください。</p>
                 </div>
 
                 <div>
-                  <label className="text-xs text-slate-400 block mb-2 font-bold">天体名 / 商品名</label>
+                  <label className="text-xs text-slate-400 block mb-2 font-bold">商品名</label>
                   <input
                     type="text"
-                    placeholder="例：青色超巨星「スピカ」"
+                    placeholder="例：宇宙服4023年モデル"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full bg-[#0c101f] border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 transition-colors"
@@ -134,10 +181,13 @@ export const SellPage = () => {
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full bg-[#0c101f] border border-slate-800 rounded px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-cyan-500/50 transition-colors"
                   >
-                    <option value="惑星・星">惑星・星</option>
-                    <option value="惑星・衛星">惑星・衛星</option>
-                    <option value="ブラックホール">ブラックホール</option>
-                    <option value="銀河・星雲">銀河・星雲</option>
+                    <option value="宇宙船・パーツ">宇宙船・パーツ</option>
+                    <option value="生存物資・酸素">生存物資・酸素</option>
+                    <option value="ITデバイス">ITデバイス</option>
+                    <option value="天体ガジェット・インテリア">天体ガジェット・インテリア</option>
+                    <option value="宇宙服・ウェア">宇宙服・ウェア</option>
+                    <option value="本・星図">本・星図</option>
+                    <option value="その他">その他</option>
                   </select>
                 </div>
               </div>
@@ -148,14 +198,34 @@ export const SellPage = () => {
               <div className="space-y-4">
                 <h3 className="text-base font-bold text-slate-200 border-b border-slate-800 pb-2 mb-4">詳細情報</h3>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-2 font-bold">天体の詳細説明（状態、パラメータ、軌道情報など）</label>
+                  <label className="text-xs text-slate-400 block mb-2 font-bold">商品の詳細説明（用途、使用度、傷の有無など）</label>
                   <textarea
                     rows={6}
-                    placeholder="天体の詳細な説明を記述してください..."
+                    placeholder="商品の詳細な説明を記述してください..."
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="w-full bg-[#0c101f] border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 transition-colors resize-none"
                   />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleGenerateSpaceDescription} //ボタンを押したらAI関数を実行
+                    disabled={isGeneratingAI}               //通信中はボタンを押せなくする
+                    className="..."
+                  >
+                    {isGeneratingAI ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" /> {/* ぐるぐる回る */}
+                        銀河系データベースから抽出中...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={14} /> {/* キラキラ */}
+                        Gemini 3で宇宙風の説明を自動生成
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             )}
@@ -165,7 +235,7 @@ export const SellPage = () => {
               <div className="space-y-4">
                 <h3 className="text-base font-bold text-slate-200 border-b border-slate-800 pb-2 mb-4">価格設定</h3>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-2 font-bold">販売価格 (µCr / マイクロクレジット)</label>
+                  <label className="text-xs text-slate-400 block mb-2 font-bold">販売価格 (円 / 太陽系第三惑星,地球,日本国通貨)</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -174,7 +244,7 @@ export const SellPage = () => {
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       className="w-full bg-[#0c101f] border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50 transition-colors pr-12"
                     />
-                    <span className="absolute right-3 top-2.5 text-xs text-slate-500 font-bold">µCr</span>
+                    <span className="absolute right-3 top-2.5 text-xs text-slate-500 font-bold">円</span>
                   </div>
                 </div>
               </div>
@@ -185,19 +255,22 @@ export const SellPage = () => {
               <div className="space-y-4">
                 <h3 className="text-base font-bold text-slate-200 border-b border-slate-800 pb-2 mb-4">最終確認</h3>
                 <div className="flex gap-4 bg-[#0c101f] p-4 border border-slate-900 rounded text-xs text-slate-300">
-                  {formData.image_url_1 && (
+                  {imagePreviewUrl && (
                     <div className="w-24 h-24 rounded overflow-hidden border border-slate-800 flex-shrink-0">
-                      <img src={formData.image_url_1} alt="Confirm" className="w-full h-full object-cover" />
+                      <img src={imagePreviewUrl} alt="Confirm" className="w-full h-full object-cover" />
                     </div>
                   )}
                   <div className="space-y-2 flex-grow">
                     <p><span className="text-slate-500">商品名:</span> {formData.title || '（未入力）'}</p>
                     <p><span className="text-slate-500">カテゴリ:</span> {formData.category}</p>
                     <p><span className="text-slate-500">説明文:</span> {formData.description || '（未入力）'}</p>
-                    <p><span className="text-slate-500">価格:</span> {formData.price ? `${Number(formData.price).toLocaleString()} µCr` : '（未入力）'}</p>
+                    <p><span className="text-slate-500">価格:</span> {formData.price ? `${Number(formData.price).toLocaleString()} 円` : '（未入力）'}</p>
                   </div>
                 </div>
-                <p className="text-[11px] text-amber-400/80 animate-pulse">⚠️ 宇宙条約に基づき、一度出品された天体は軌道変更が困難になります。内容を確認してください。</p>
+                <p className="flex items-center gap-1.5 text-[11px] text-amber-400/80 animate-pulse">
+                  <AlertTriangle size={12} />
+                  銀河通商協定第31条に基づき、異星人間の商品取引は行われます。不公平な取引が発覚した場合は銀河公正取引委員会による調査の対象となります。
+                </p>
               </div>
             )}
 
@@ -209,12 +282,13 @@ export const SellPage = () => {
               type="button"
               onClick={handleBack}
               disabled={currentStep === 1 || isSubmitting}
-              className={`px-4 py-1.5 border rounded text-xs transition-all ${
+              className={`flex items-center gap-1 px-4 py-1.5 border rounded text-xs transition-all ${
                 currentStep === 1 || isSubmitting
                   ? 'border-slate-900 text-slate-700 cursor-not-allowed'
                   : 'border-slate-700 text-slate-400 hover:bg-slate-900'
               }`}
             >
+              <ChevronLeft size={14} />
               戻る
             </button>
 
@@ -222,23 +296,34 @@ export const SellPage = () => {
               <button
                 type="button"
                 onClick={handleNext}
-                className="px-6 py-1.5 bg-cyan-950/60 border border-cyan-500 text-cyan-400 rounded text-xs font-bold tracking-wider hover:bg-cyan-900/60 hover:text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.2)] transition-all"
+                className={`flex items-center gap-1 px-6 py-1.5 rounded text-xs tracking-wider ${PRIMARY_BUTTON_CLASS}`}
               >
                 次へ
+                <ChevronRight size={14} />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="px-6 py-1.5 bg-purple-950/60 border border-purple-500 text-purple-400 rounded text-xs font-bold tracking-wider hover:bg-purple-900/60 hover:text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)] transition-all disabled:opacity-50"
+                className={`flex items-center gap-1.5 px-6 py-1.5 rounded text-xs tracking-wider ${PRIMARY_BUTTON_CLASS}`}
               >
-                {isSubmitting ? '通信中...📡' : '宇宙へ出品する🚀'}
+                {isSubmitting ? '通信中...' : (
+                  <>
+                    出品する
+                    <Rocket size={14} />
+                  </>
+                )}
               </button>
             )}
           </div>
 
         </div>
+        <SuccessModal
+        isOpen={successState.isOpen}
+        onClose={handleCloseSuccess}
+        message={successState.message}
+        />
       </div>
     </AppLayout>
   );

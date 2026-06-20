@@ -1,4 +1,5 @@
 import React from 'react';
+import { Rocket, Sparkles, Orbit, CircleDot, Sparkle } from 'lucide-react';
 
 // 1. 親から受け取るPropsの型定義
 interface SearchSidebarProps {
@@ -13,12 +14,12 @@ interface SearchSidebarProps {
 
 // 2. 宇宙仕様のカテゴリデータ
 const CATEGORIES = [
-  { id: 'all', label: 'すべて', icon: '🚀' },
-  { id: 'stars', label: '恒星・星', icon: '✨' },
-  { id: 'planets', label: '惑星・衛星', icon: '🪐' },
-  { id: 'blackhole', label: 'ブラックホール', icon: '🕳️' },
-  { id: 'galaxies', label: '銀河・星雲', icon: '🌌' },
-  { id: 'others', label: 'その他', icon: '☄️' },
+  { id: 'all', label: 'すべて', icon: Rocket },
+  { id: 'stars', label: '恒星・星', icon: Sparkles },
+  { id: 'planets', label: '惑星・衛星', icon: Orbit },
+  { id: 'blackhole', label: 'ブラックホール', icon: CircleDot },
+  { id: 'galaxies', label: '銀河・星雲', icon: Orbit },
+  { id: 'others', label: 'その他', icon: Sparkle },
 ];
 
 export const SearchSidebar: React.FC<SearchSidebarProps> = ({
@@ -71,7 +72,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({
                   }
                 `}
               >
-                <span className="text-base">{cat.icon}</span>
+                <cat.icon size={16} />
                 <span>{cat.label}</span>
               </button>
             );

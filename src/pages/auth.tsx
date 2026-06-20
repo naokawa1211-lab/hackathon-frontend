@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { Orbit, KeyRound, Satellite, Lock, Radio, Rocket, Globe, Code2, AlertTriangle, ChevronRight } from 'lucide-react';
 import { fireAuth } from '../firebase';
 import { useAuth } from '../context/AuthContext'; // 💡 ContextからHookをインポート
+import { PRIMARY_BUTTON_CLASS } from '../styles/buttonStyles';
 
 export const AuthPage = () => {
   const navigate = useNavigate();
@@ -74,8 +76,9 @@ export const AuthPage = () => {
 
         {/* タイトル */}
         <div className="text-center mb-6">
-          <h2 className="text-cyan-400 font-mono text-xl font-bold tracking-widest uppercase">
-            {isSignUp ? '🌌 Space Citizen Registration' : '🔑 Quantum Link Connect'}
+          <h2 className="flex items-center justify-center gap-2 text-cyan-400 font-mono text-xl font-bold tracking-widest uppercase">
+            {isSignUp ? <Orbit size={20} /> : <KeyRound size={20} />}
+            {isSignUp ? 'Space Citizen Registration' : 'Quantum Link Connect'}
           </h2>
           <p className="text-slate-500 font-mono text-[10px] tracking-widest mt-1">
             MILKYWAY FLEA MARKET NETWORK
@@ -84,16 +87,18 @@ export const AuthPage = () => {
 
         {/* エラー表示 */}
         {error && (
-          <div className="mb-4 p-3 bg-rose-950/40 border border-rose-500/50 text-rose-300 rounded text-xs font-mono">
-            ⚠️ {error}
+          <div className="flex items-center gap-1.5 mb-4 p-3 bg-rose-950/40 border border-rose-500/50 text-rose-300 rounded text-xs font-mono">
+            <AlertTriangle size={13} />
+            {error}
           </div>
         )}
 
         {/* メインフォーム */}
         <form onSubmit={handleAuth} className="space-y-4">
           <div>
-            <label className="block text-cyan-500/70 font-mono text-[10px] tracking-widest uppercase mb-1">
-              🛰️ GALACTIC EMAIL
+            <label className="flex items-center gap-1.5 text-cyan-500/70 font-mono text-[10px] tracking-widest uppercase mb-1">
+              <Satellite size={11} />
+              GALACTIC EMAIL
             </label>
             <input
               type="email"
@@ -106,8 +111,9 @@ export const AuthPage = () => {
           </div>
 
           <div>
-            <label className="block text-cyan-500/70 font-mono text-[10px] tracking-widest uppercase mb-1">
-              🔒 ACCESS KEY
+            <label className="flex items-center gap-1.5 text-cyan-500/70 font-mono text-[10px] tracking-widest uppercase mb-1">
+              <Lock size={11} />
+              ACCESS KEY
             </label>
             <input
               type="password"
@@ -122,9 +128,24 @@ export const AuthPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-800 text-slate-950 font-bold py-2.5 rounded font-mono text-xs tracking-widest uppercase transition-all shadow-lg shadow-cyan-500/10 active:scale-[0.98]"
+            className={`w-full flex items-center justify-center gap-2 py-2.5 rounded font-mono text-xs tracking-widest uppercase active:scale-[0.98] ${PRIMARY_BUTTON_CLASS}`}
           >
-            {loading ? '📡 TRANSMITTING...' : isSignUp ? '🚀 REGISTER' : '🌌 CONNECT'}
+            {loading ? (
+              <>
+                <Radio size={14} />
+                TRANSMITTING...
+              </>
+            ) : isSignUp ? (
+              <>
+                <Rocket size={14} />
+                REGISTER
+              </>
+            ) : (
+              <>
+                <Orbit size={14} />
+                CONNECT
+              </>
+            )}
           </button>
         </form>
 
@@ -136,9 +157,10 @@ export const AuthPage = () => {
               setIsSignUp(!isSignUp);
               setError('');
             }}
-            className="text-slate-500 hover:text-cyan-400 text-[11px] font-mono transition-colors"
+            className="flex items-center gap-1 mx-auto text-slate-500 hover:text-cyan-400 text-[11px] font-mono transition-colors"
           >
-            {isSignUp ? '➔ EXISTING LOG-IN' : '➔ NEW REGISTER'}
+            <ChevronRight size={12} />
+            {isSignUp ? 'EXISTING LOG-IN' : 'NEW REGISTER'}
           </button>
         </div>
 
@@ -159,7 +181,7 @@ export const AuthPage = () => {
             onClick={() => handleSocialSignIn(loginWithGoogle, 'Google')}
             className="flex items-center justify-center gap-2 bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-slate-300 font-mono text-xs py-2 px-3 rounded transition-all hover:bg-slate-850 active:scale-[0.98]"
           >
-            <span className="text-sm">🌐</span> Google
+            <Globe size={14} /> Google
           </button>
 
           {/* GitHub ボタン */}
@@ -169,7 +191,7 @@ export const AuthPage = () => {
             onClick={() => handleSocialSignIn(loginWithGithub, 'GitHub')}
             className="flex items-center justify-center gap-2 bg-slate-900 border border-slate-800 hover:border-purple-500/40 text-slate-300 font-mono text-xs py-2 px-3 rounded transition-all hover:bg-slate-850 active:scale-[0.98]"
           >
-            <span className="text-sm">🐙</span> GitHub
+            <Code2 size={14} /> GitHub
           </button>
         </div>
 

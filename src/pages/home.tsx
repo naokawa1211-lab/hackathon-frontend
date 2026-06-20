@@ -1,12 +1,13 @@
 import React from 'react';
+import { Rocket, Wind, CircleDot } from 'lucide-react';
 // 1. 共通の AppLayout と新規の HomeSidebar をインポート
-import AppLayout from '../components/layout/AppLayout'; 
+import AppLayout from '../components/layout/AppLayout';
 import { HomeSidebar } from '../components/sidebar/HomeSidebar';
 
 const MOCK_PRODUCTS = [
-  { id: 'TR-8092', title: '型落ちの小型探査艇（ジャンク）', price: 4500000, seller: 'シバタ大佐', status: '耐久度 34%', category: '宇宙船', image: '🚀' },
-  { id: 'OX-1102', title: 'アルファ産 純度99.9% 圧縮酸素ボンベ', price: 1200, seller: 'エコアース社', status: '残量 80%', category: '生存物資', image: '💨' },
-  { id: 'BH-0001', title: '卓上ミニ・ブラックホール（観賞用）', price: 85000, seller: 'Dr.マセ', status: '安定度：極めて安全', category: '天体ガジェット', image: '🕳️' },
+  { id: 'TR-8092', title: '型落ちの小型探査艇（ジャンク）', price: 4500000, seller: 'シバタ大佐', status: '耐久度 34%', category: '宇宙船', icon: Rocket },
+  { id: 'OX-1102', title: 'アルファ産 純度99.9% 圧縮酸素ボンベ', price: 1200, seller: 'エコアース社', status: '残量 80%', category: '生存物資', icon: Wind },
+  { id: 'BH-0001', title: '卓上ミニ・ブラックホール（観賞用）', price: 85000, seller: 'Dr.マセ', status: '安定度：極めて安全', category: '天体ガジェット', icon: CircleDot },
 ];
 
 export const HomePage: React.FC = () => {
@@ -31,8 +32,8 @@ export const HomePage: React.FC = () => {
                 <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-400 opacity-50 group-hover:opacity-100" />
                 <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-cyan-400 opacity-50 group-hover:opacity-100" />
 
-                <div className="h-40 bg-slate-950/50 rounded-lg flex items-center justify-center text-5xl mb-4 border border-white/5">
-                  {product.image}
+                <div className="h-40 bg-slate-950/50 rounded-lg flex items-center justify-center mb-4 border border-white/5 text-slate-300">
+                  <product.icon size={48} strokeWidth={1.5} />
                 </div>
 
                 <span className="text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded">

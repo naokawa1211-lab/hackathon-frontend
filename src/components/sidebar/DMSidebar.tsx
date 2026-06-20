@@ -1,4 +1,5 @@
 import React from 'react';
+import { Radio } from 'lucide-react';
 
 // 1. チャットユーザーの型定義
 interface ChatUser {
@@ -24,8 +25,9 @@ export const DMSidebar: React.FC<DMSidebarProps> = ({
     <div className="w-80 h-full bg-slate-950/40 border-r border-cyan-500/20 flex flex-col font-mono text-slate-200">
       {/* サイドバーヘッダー */}
       <div className="p-4 border-b border-cyan-500/20 bg-slate-950/60">
-        <h2 className="text-xs font-bold text-cyan-400 tracking-widest uppercase">
-          📡 QUANTUM CHANNELS
+        <h2 className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 tracking-widest uppercase">
+          <Radio size={13} />
+          トークルーム
         </h2>
       </div>
 
