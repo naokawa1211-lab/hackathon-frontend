@@ -63,22 +63,34 @@ const ProductCard: React.FC<{ product: any; onClick: () => void }> = ({ product,
 export const HomePage: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // 🛰️ 「本当に0件」と「通信失敗で0件になっただけ」を区別するためのフラグ
+  const [fetchError, setFetchError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const fetchProducts = () => {
+    setLoading(true);
+    setFetchError(false);
     //バックエンドから本物の商品一覧を取得
     fetch(`${API_BASE_URL}/api/products`)
-      .then((res) => (res.ok ? res.json() : []))
+      .then((res) => {
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
         setProducts(data || []);
         setLoading(false);
       })
       .catch(() => {
         setProducts([]);
+        setFetchError(true);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchProducts();
   }, []);
 
   // 💡 サイドバーの検索・カテゴリーフィルターを実際に反映
@@ -115,6 +127,16 @@ export const HomePage: React.FC = () => {
         {loading ? (
           <div className="text-center font-mono text-cyan-600 animate-pulse py-12">
             商品を読み込み中...
+          </div>
+        ) : fetchError ? (
+          <div className="text-center font-mono text-amber-500 py-12 border border-dashed border-amber-800/50 rounded-xl space-y-3">
+            <p>⚠️ 通信エラー：商品データを取得できませんでした。</p>
+            <button
+              onClick={fetchProducts}
+              className="text-xs px-4 py-1.5 rounded border border-amber-500/50 hover:bg-amber-500/10 transition-colors"
+            >
+              再読み込み
+            </button>
           </div>
         ) : products.length === 0 ? (
           <div className="text-center font-mono text-gray-500 py-12 border border-dashed border-gray-800 rounded-xl">

@@ -11,6 +11,9 @@ export const SearchPage = () => {
   const navigate = useNavigate(); // 💡 追加
   const { user } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  // 🛰️ 「本当に0件」と「通信失敗で0件になっただけ」を区別するためのフラグ
+  const [fetchError, setFetchError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // 💡 追加: 現在モダルで詳細を開いている商品を管理するState（nullのときは閉じている状態）
@@ -44,39 +47,45 @@ export const SearchPage = () => {
     return `未知の生命体 (${id.slice(0, 5)})`;
   };
 
+  const fetchRealProducts = async () => {
+    setProductsLoading(true);
+    setFetchError(false);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/products`);
+      if (!response.ok) throw new Error(`status ${response.status}`);
+
+      const realData = await response.json();
+
+      // 💡 出品者のUIDをユニーク化し、MySQLから本名を解決（ハードコードをやめる）
+      const uniqueSellerIds: string[] = Array.from(new Set(realData.map((p: any) => p.seller_id)));
+      const nameEntries = await Promise.all(
+        uniqueSellerIds.map(async (id) => [id, await resolveSellerName(id)] as const)
+      );
+      const nameMap = Object.fromEntries(nameEntries);
+
+      const formattedRealData = realData.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        price: p.price,
+        category: p.category || '恒星・星',
+        image_url_1: p.image_url_1 || 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=600',
+        seller_id: p.seller_id, // 💡 修正: モダル側の自作自演ガードのために保持
+        seller_name: nameMap[p.seller_id],
+        rating: 5.0,
+        status: p.status,
+        isReal: true
+      }));
+      setProducts(formattedRealData);
+    } catch (error) {
+      console.log("Goサーバーへの通信に失敗しました:", error);
+      setFetchError(true);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchRealProducts = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/products`);
-        if (response.ok) {
-          const realData = await response.json();
-
-          // 💡 出品者のUIDをユニーク化し、MySQLから本名を解決（ハードコードをやめる）
-          const uniqueSellerIds: string[] = Array.from(new Set(realData.map((p: any) => p.seller_id)));
-          const nameEntries = await Promise.all(
-            uniqueSellerIds.map(async (id) => [id, await resolveSellerName(id)] as const)
-          );
-          const nameMap = Object.fromEntries(nameEntries);
-
-          const formattedRealData = realData.map((p: any) => ({
-            id: p.id,
-            title: p.title,
-            description: p.description,
-            price: p.price,
-            category: p.category || '恒星・星',
-            image_url_1: p.image_url_1 || 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=600',
-            seller_id: p.seller_id, // 💡 修正: モダル側の自作自演ガードのために保持
-            seller_name: nameMap[p.seller_id],
-            rating: 5.0,
-            status: p.status,
-            isReal: true
-          }));
-          setProducts(formattedRealData);
-        }
-      } catch (error) {
-        console.log("Goサーバーがオフラインのため、モックデータのみで巡航します。");
-      }
-    };
     fetchRealProducts();
   }, []);
 
@@ -197,7 +206,21 @@ export const SearchPage = () => {
           <div className="text-[11px] text-slate-500">グリッド表示中 ⠿</div>
         </div>
 
+        {/* ⚠️ 通信エラー時：0件と区別して再読み込みを促す */}
+        {fetchError && (
+          <div className="flex flex-col items-center gap-3 text-center py-12 border border-dashed border-amber-800/50 rounded-xl text-amber-500 text-xs">
+            <p>⚠️ 通信エラー：商品データを取得できませんでした。</p>
+            <button
+              onClick={fetchRealProducts}
+              className="text-xs px-4 py-1.5 rounded border border-amber-500/50 hover:bg-amber-500/10 transition-colors"
+            >
+              再読み込み
+            </button>
+          </div>
+        )}
+
         {/* 📦 商品カードグリッド */}
+        {!fetchError && (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredProducts.map((product) => {
             const isSoldOut = product.status === 'sold' || product.status === 'sold_out';
@@ -283,9 +306,10 @@ export const SearchPage = () => {
             );
           })}
         </div>
+        )}
 
-        {/* 📭 該当なしの場合 */}
-        {filteredProducts.length === 0 && (
+        {/* 📭 該当なしの場合（読み込み中・通信エラー時は表示しない） */}
+        {!fetchError && !productsLoading && filteredProducts.length === 0 && (
           <div className="flex flex-col items-center gap-2 text-center py-12 border border-dashed border-slate-900 rounded-xl text-slate-500 text-xs">
             <SatelliteDish size={20} />
             指定された座標に天体シグナルは見つかりませんでした。
