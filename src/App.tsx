@@ -8,9 +8,11 @@ import { SearchPage } from './pages/search';
 import { MyPage } from './pages/mypage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext'; // 💡 useAuthもインポート
+import { AIAgentProvider } from './context/AIAgentContext';
 import { useAlertInterceptor } from './hooks/useAlertInterceptor';
 import { ErrorModal } from './components/Modal/ErrorModal';
 import { SuccessModal } from './components/Modal/SuccessModal';
+import { AIAgentPanel } from './components/ai/AIAgentPanel';
 
 // 🛰️ [A] メインのコンテンツ（ルーティングとローディング監視）
 const AppContent = () => {
@@ -63,9 +65,12 @@ const AppContent = () => {
             />
           )
         )}
+
+        {/* 🛰️ 統合AIエージェント Polaris（全ページ共通で右からスライドイン） */}
+        <AIAgentPanel />
       </div>
     </Router>
-    
+
   );
 };
 
@@ -73,7 +78,9 @@ const AppContent = () => {
 const App = () => {
   return (
     <AuthProvider>
-      <AppContent />
+      <AIAgentProvider>
+        <AppContent />
+      </AIAgentProvider>
     </AuthProvider>
   );
 };

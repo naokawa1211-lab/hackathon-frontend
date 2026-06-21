@@ -22,7 +22,7 @@ export const DMSidebar: React.FC<DMSidebarProps> = ({
   onSelectUser,
 }) => {
   return (
-    <div className="w-80 h-full bg-slate-950/40 border-r border-cyan-500/20 flex flex-col font-mono text-slate-200">
+    <div className="w-full md:w-80 h-full bg-slate-950/40 border-r border-cyan-500/20 flex flex-col font-mono text-slate-200">
       {/* サイドバーヘッダー */}
       <div className="p-4 border-b border-cyan-500/20 bg-slate-950/60">
         <h2 className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 tracking-widest uppercase">

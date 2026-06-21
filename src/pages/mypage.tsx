@@ -231,14 +231,19 @@ export const MyPage = () => {
     <AppLayout sidebar={sidebar}>
       <div className="max-w-6xl mx-auto space-y-8 relative">
         
-        {/* 👤 プロフィールヘッダー */}
-        <section className="relative rounded-3xl overflow-hidden border border-cyan-500/20 bg-[#0b1224]/30 backdrop-blur-md p-8 shadow-xl">
-          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent"></div>
+        {/* 👤 プロフィールヘッダー（でかでか宇宙背景仕様） */}
+        <section 
+          className="relative rounded-3xl overflow-hidden border border-cyan-500/40 px-8 py-12 bg-cover bg-center bg-slate-950/45 bg-blend-overlay shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all"
+          style={{ backgroundImage: "url('/utyuusen2.png')" }}
+        >
+          {/* 背景の宇宙をくっきり見せつつ、文字の視認性をしっかり守るグラデーションマスク */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/50 via-transparent to-slate-950/50 pointer-events-none z-0" />
+          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent z-10"></div>
           
-          <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-center md:items-start gap-6 w-full">
             <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left">
-              {/* アバター: 本物の写真（Google/GitHub等）があれば表示、無ければ汎用アイコンにフォールバック */}
-              <div className="w-24 h-24 rounded-full border-2 border-cyan-500/40 p-1 relative shrink-0">
+              {/* アバター部分（背景から浮き出させるため背後を少し暗く補正） */}
+              <div className="w-24 h-24 rounded-full border-2 border-cyan-500/50 p-1 relative shrink-0 bg-slate-950/60 backdrop-blur-sm shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                 {userData.photoURL ? (
                   <img src={userData.photoURL} alt="Avatar" className="w-full h-full rounded-full object-cover" />
                 ) : (
@@ -246,34 +251,34 @@ export const MyPage = () => {
                     <User size={36} />
                   </div>
                 )}
-                <div className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-[#0b1224]" />
+                <div className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 rounded-full border-4 border-slate-950" />
               </div>
 
-              {/* ユーザー基本情報 */}
+              {/* ユーザー基本情報（文字影を追加して視認性爆上げ） */}
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
-                  <h1 className={`text-2xl font-bold font-mono tracking-wide ${!userData.username ? 'text-slate-500 italic' : 'text-white'}`}>
+                  <h1 className={`text-2xl font-black font-mono tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${!userData.username ? 'text-slate-500 italic' : 'text-white'}`}>
                     {currentUsername}
                   </h1>
-                  <span className="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20 font-mono">
+                  <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded border border-cyan-500/40 font-mono font-bold shadow-[0_0_8px_rgba(6,182,212,0.4)]">
                     {!userData.username ? '未同期ユーザー' : '宇宙S級バイヤー'}
                   </span>
                 </div>
                 
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-xs text-slate-400 font-mono">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-xs text-slate-200 font-mono drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] font-medium">
                   <p className="flex items-center gap-1.5">
-                    <Calendar size={12} className="text-cyan-500/70" />
+                    <Calendar size={12} className="text-cyan-400" />
                     登録: {userData.createdAt}
                   </p>
                   {userData.spaceBase && (
                     <p className="flex items-center gap-1.5">
-                      <Globe size={12} className="text-cyan-500/70" />
+                      <Globe size={12} className="text-cyan-400" />
                       拠点: {userData.spaceBase}
                     </p>
                   )}
                 </div>
 
-                <p className="text-[11px] text-slate-300 max-w-md font-mono leading-relaxed">
+                <p className="text-[11px] text-slate-100 max-w-xl font-mono leading-relaxed drop-shadow-[0_1px_5px_rgba(0,0,0,0.9)] bg-slate-950/40 p-3 rounded-lg border border-slate-800/40">
                   {userData.bio || '自己紹介プロトコルが未設定です。'}
                 </p>
 
@@ -282,7 +287,7 @@ export const MyPage = () => {
                     setEditForm({ username: userData.username, spaceBase: userData.spaceBase, bio: userData.bio });
                     setIsEditing(true);
                   }}
-                  className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-cyan-400/80 border border-cyan-500/30 bg-cyan-500/5 px-3 py-1.5 rounded hover:bg-cyan-500/20 hover:text-cyan-300 transition-all mt-2"
+                  className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-cyan-300 border border-cyan-500/50 bg-slate-950/60 backdrop-blur-sm px-3 py-1.5 rounded hover:bg-cyan-500/20 hover:text-cyan-200 shadow-md transition-all mt-3"
                 >
                   <Edit3 size={12} />
                   プロフィールを同期・編集
@@ -290,8 +295,8 @@ export const MyPage = () => {
               </div>
             </div>
 
-            {/* カウンター表示 */}
-            <div className="flex gap-8 justify-center w-full md:w-auto text-center border-t border-slate-800 md:border-t-0 pt-4 md:pt-0">
+            {/* カウンター表示（右側パネルも背景に負けないよう微調整） */}
+            <div className="flex gap-8 justify-center w-full md:w-auto text-center border-t border-slate-800/50 md:border-t-0 pt-4 md:pt-0 drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">
               <StatItem label="出品数" value={myProducts.length.toString()} />
               <StatItem label="フォロワー" value="4.8k" />
               <StatItem label="フォロー" value="156" />
@@ -345,7 +350,6 @@ export const MyPage = () => {
                 </button>
               </div>
 
-              {/* 🚀 導線強化：クリックしたら実際に出品画面へ飛ぶように修正 */}
               <button 
                 onClick={() => navigate('/sell')} 
                 className={`flex items-center gap-2 text-[10px] px-4 py-1.5 rounded font-mono ${PRIMARY_BUTTON_CLASS}`}
@@ -355,7 +359,6 @@ export const MyPage = () => {
               </button>
             </div>
 
-            {/* ⭐ レビュータブは商品カードではなく受け取ったレビュー一覧を表示 */}
             {activeTab === 'reviews' ? (
               renderReviewsSection(receivedReviews, reviewsLoading)
             ) : (
@@ -395,7 +398,6 @@ export const MyPage = () => {
 
             {/* 完成度チェック */}
             <div className="bg-[#0b1224]/20 border border-cyan-500/10 rounded-2xl p-5 space-y-4 shadow-lg backdrop-blur-xl">
-              <h3 className="text-xs font-bold font-mono tracking-wider">プロフィール同期状況</h3>
               <div className="space-y-3 font-mono">
                 <div className="flex justify-between text-[10px] font-bold">
                   <span className={userData.username ? "text-emerald-400" : "text-amber-400"}>
@@ -525,7 +527,6 @@ export const MyPage = () => {
 
 // --- サブコンポーネント ---
 
-// 🚀 「出品した商品」「購入した商品」「お気に入り」タブの商品カード一覧をレンダリングする
 const renderProductSection = (
   activeTab: MyPageTab,
   data: {
@@ -638,7 +639,6 @@ const renderProductSection = (
   );
 };
 
-// ⭐ 「レビュー」タブ：自分が受け取った評価の平均と一覧を表示する
 const renderReviewsSection = (reviews: any[], isLoading: boolean) => {
   if (isLoading) {
     return (
@@ -716,7 +716,6 @@ const ProfileCheck = ({ label, checked = false }: { label: string, checked?: boo
   </li>
 );
 
-// --- 既存のモックスタティックデータ（デザイン維持用） ---
 const STATS = [
   { label: '総資産額', value: '145,200 円', change: '+12.4%', subLabel: '今月の上昇率' },
   { label: 'マイシグナル', value: '99.4%', change: 'EXCELLENT', subLabel: '応答速度レート' },

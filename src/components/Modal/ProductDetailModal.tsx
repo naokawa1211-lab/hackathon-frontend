@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { X, Zap } from "lucide-react";
+import { X, Zap, Sparkles } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useAIAgent } from "../../context/AIAgentContext";
 import { PRIMARY_BUTTON_CLASS } from "../../styles/buttonStyles";
 import { API_BASE_URL } from "../../config/api";
 
@@ -27,8 +28,18 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onClose,
   onBuySuccess,
 }) => {
-  const { user } = useAuth(); 
+  const { user } = useAuth();
+  const { openAgent } = useAIAgent();
   const [loading, setLoading] = useState(false);
+
+  const handleAppraise = () => {
+    openAgent('appraise', {
+      title: product.title,
+      description: product.description,
+      price: product.price,
+      category: product.category,
+    });
+  };
 
   const handleBuy = async () => {
     // 💡 TypeScriptのNullガード（userの存在チェック）
@@ -148,6 +159,15 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   )}
                 </button>
               )}
+
+              {/* 🛰️ Polarisに鑑定してもらう（売り切れ・自分の出品でも鑑定自体は可能） */}
+              <button
+                onClick={handleAppraise}
+                className="w-full mt-2.5 py-2.5 rounded-lg tracking-wider flex items-center justify-center gap-2 text-xs font-mono bg-purple-950/40 text-purple-300 border border-purple-500/40 hover:bg-purple-500/20 hover:border-purple-400 transition-all active:scale-[0.98]"
+              >
+                <Sparkles size={14} />
+                Polarisに鑑定してもらう
+              </button>
             </div>
 
           </div>

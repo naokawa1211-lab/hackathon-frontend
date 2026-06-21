@@ -136,6 +136,24 @@ export const HomePage: React.FC = () => {
         ) : (
           // 🌌 フィルタなし：2部構成セクション表示
           <>
+            <div className="relative w-full h-60 md:h-72 rounded-xl overflow-hidden border border-cyan-500/30 mb-8 bg-[url('https://images.unsplash.com/photo-1538370965046-79c0d6907d47?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center shadow-[0_0_30px_rgba(6,182,212,0.15)]">
+  
+              {/* 文字を読みやすくするためのダークグラデーションオーバーレイ */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/20" />
+              
+              {/* サイバー風の走査線演出（お好みで） */}
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,3px_100%]" />
+
+              {/* コンテンツ */}
+              <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-6 z-10">
+                <h1 className="text-3xl md:text-5xl font-black tracking-widest font-mono uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 drop-shadow-[0_0_15px_rgba(168,85,247,0.6)] animate-pulse">
+                  Milkyway Flea Market
+                </h1>
+                <p className="text-xs md:text-sm text-cyan-300 font-mono mt-3 tracking-wider bg-slate-950/60 px-3 py-1 rounded-full border border-cyan-500/20 backdrop-blur-sm">
+                  ✦ 全銀河系対応型・次世代分散式フリーマーケット ✦
+                </p>
+              </div>
+            </div>
             <section>
               <h2 className="text-sm mb-4 text-cyan-400 flex items-center gap-2 font-bold tracking-widest uppercase">
                 <span className="inline-block w-2 h-2 bg-cyan-400 rounded-full animate-ping" />

@@ -161,22 +161,33 @@ export const SearchPage = () => {
       <div className="p-6 space-y-6 font-mono w-full max-w-7xl mx-auto">
         
         {/* 🔍 検索バー & 宇宙演出 */}
-        <div className="relative rounded-2xl overflow-hidden border border-slate-800/50 p-6 bg-gradient-to-r from-[#070b1e] to-[#0d1536]">
-          <Rocket className="absolute right-10 top-4 w-10 h-10 opacity-10 animate-pulse" />
-          <h1 className="text-xl font-bold text-slate-100 mb-1 tracking-wide flex items-center gap-2">
-            探す <span className="text-cyan-400 text-xs">✦ MILKYWAY FLEA MARKET</span>
-          </h1>
-          <p className="text-xs text-slate-400 mb-4">宇宙のすべてが、あなたのマーケットに。</p>
-          
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="キーワードで探す（例：スピカ、シリウス、ハビタブル...）"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#040714] border border-cyan-500/20 focus:border-cyan-400/60 rounded-xl pl-4 pr-12 py-3 text-sm text-slate-200 focus:outline-none transition-all shadow-inner placeholder-slate-600"
-            />
-            <Search size={16} className="absolute right-4 top-3.5 text-slate-500" />
+        <div 
+          className="relative rounded-2xl overflow-hidden border border-cyan-500/40 px-6 py-20 md:py-28 bg-cover bg-center bg-slate-950/45 bg-blend-overlay shadow-[0_0_35px_rgba(6,182,212,0.2)] transition-all"
+          style={{ backgroundImage: "url('/utyuusen.png')" }}
+        >
+          {/* 背景画像を引き立てつつ、文字の視認性を最低限守るための薄い上下グラデーション */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-slate-950/30 pointer-events-none z-0" />
+
+          {/* コンテンツを中央寄せにして、より映画のタイトル風の配置に */}
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <h1 className="text-2xl md:text-4xl font-black text-slate-100 mb-3 tracking-widest uppercase drop-shadow-[0_0_15px_rgba(6,182,212,0.6)]">
+              探す <span className="text-cyan-400 text-sm md:text-base block md:inline md:ml-2 font-mono">✦ MILKYWAY FLEA MARKET</span>
+            </h1>
+            <p className="text-xs md:text-sm text-cyan-100 mb-8 max-w-md drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] font-medium">
+              宇宙のすべてが、あなたのマーケットに。
+            </p>
+            
+            {/* 巨大化したエリアに合わせて、入力欄も max-w-3xl（少しワイド）に拡張 */}
+            <div className="relative w-full max-w-3xl text-left">
+              <input
+                type="text"
+                placeholder="キーワードで探す（例：スピカ、シリウス、ハビタブル...）"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#040714]/90 backdrop-blur-md border border-cyan-500/40 focus:border-cyan-400 rounded-xl pl-6 pr-12 py-4 text-base text-slate-200 focus:outline-none transition-all shadow-[0_0_20px_rgba(6,182,212,0.1)] focus:shadow-[0_0_25px_rgba(6,182,212,0.3)] placeholder-slate-600"
+              />
+              <Search size={20} className="absolute right-4 top-4 text-cyan-500/70" />
+            </div>
           </div>
         </div>
 

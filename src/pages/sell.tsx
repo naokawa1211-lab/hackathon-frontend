@@ -196,9 +196,9 @@ export const SellPage = () => {
                   />
                   <p className="text-[10px] text-slate-500 mt-2">商品画像をアップロードしてください。</p>
                   {isAnalyzingImage && (
-                    <p className="flex items-center gap-1.5 text-[10px] text-cyan-400 mt-2 animate-pulse">
+                    <p className="flex items-center gap-1.5 text-[10px] text-purple-400 mt-2 animate-pulse">
                       <Loader2 size={12} className="animate-spin" />
-                      Geminiが画像を解析中...（商品名・説明文を自動生成しています）
+                      Polarisが画像を解析中...（商品名・説明文を自動生成しています）
                     </p>
                   )}
                 </div>
