@@ -42,6 +42,8 @@ export const DMPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // 🛰️ 購入直後の「取引を開始しました」メッセージを、同じ相手に対して二重送信しないためのガード
+  const startedTransactionsRef = useRef<Set<string>>(new Set());
 
   const fetchUsernameFromAPI = async (id: string): Promise<string> => {
     if (id === 'mock_uid_naoya') return 'Naoya';
@@ -71,6 +73,26 @@ export const DMPage: React.FC = () => {
           ...prev,
         ];
       });
+
+      // 🛰️ sellerName はsearchページの購入成功時にしか渡されない値なので、
+      // 「購入直後の遷移である」ことの判定に使い、実際の会話にも開始メッセージを残す
+      if (sellerName && !startedTransactionsRef.current.has(sellerId)) {
+        startedTransactionsRef.current.add(sellerId);
+        try {
+          await fetch(`${API_BASE_URL}/api/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sender_id: CURRENT_USER_ID,
+              receiver_id: sellerId,
+              content: '取引を開始しました。よろしくお願いします！',
+            }),
+          });
+          await fetchChatHistory(sellerId);
+        } catch (err) {
+          console.error('取引開始メッセージの送信に失敗しました:', err);
+        }
+      }
     };
 
     resolveAndAddRoute();
@@ -175,9 +197,9 @@ export const DMPage: React.FC = () => {
         {/* 👤 サイドバーエリア */}
         {/* スマホ時: 誰かを選んでいたら hidden / 選んでいなければ block（全画面） */}
         {/* PC時: 常に block（幅はDMSidebar内の md:w-80 が適用される） */}
-        <div 
+        <div
           className={`
-            ${selectedUserId ? 'hidden' : 'block'} 
+            ${selectedUserId ? 'hidden md:block' : 'block'}
             w-full md:w-auto flex-shrink-0 h-full
           `}
         >

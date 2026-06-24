@@ -185,18 +185,20 @@ export default function HeaderNavigation() {
     </header>
 
     {/* 🛰️ Polaris起動用の浮遊ボタン（紫×青のネオングロー、全ページ共通で右下に常駐）
-        💡 Polarisのパネルが開いている間（isOpen===true）はボタン自体を非レンダリングにする */}
+        💡 Polarisのパネルが開いている間（isOpen===true）はボタン自体を非レンダリングにする
+        💡 DMページでは右下に送信フォームが固定表示されるため、衝突しないよう少し上に逃がす */}
     {!isAgentOpen && (
       <button
         onClick={toggleAgent}
         title="Polaris（AIエージェント）を呼び出す"
-        className="
-          fixed bottom-6 right-6 z-[70]
+        className={`
+          fixed right-6 z-[70]
+          ${location.pathname.startsWith('/dm') ? 'bottom-24' : 'bottom-6'}
           w-14 h-14 rounded-full
           flex items-center justify-center
           border transition-all duration-300
           bg-slate-950/90 border-purple-500/50 text-purple-300 shadow-[0_0_20px_rgba(56,189,248,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.6)] hover:border-cyan-400/70 hover:text-cyan-300
-        "
+        `}
       >
         <Sparkles size={22} className="animate-pulse" />
       </button>
